@@ -9,33 +9,33 @@ export default function DashboardPage() {
   // This is a placeholder - in the future, this will fetch user data and itineraries from the database
 
   return (
-    <main className="min-h-screen bg-gray-50 py-8">
+    <main className="min-h-screen bg-offwhite py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <div className="mb-10">
+            <h1 className="text-4xl font-bold text-forest mb-3">
               Dashboard
             </h1>
-            <p className="text-gray-600">
+            <p className="text-xl text-forest/70">
               Manage your itineraries and account settings
             </p>
           </div>
 
           {/* User Profile Card */}
-          <div className="bg-white shadow rounded-lg p-6 mb-8">
-            <div className="flex items-center justify-between">
+          <div className="bg-white shadow-lg rounded-2xl p-8 mb-10">
+            <div className="flex items-center justify-between flex-wrap gap-6">
               <div className="flex items-center">
-                <div className="h-16 w-16 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-2xl font-semibold text-blue-600">
+                <div className="h-20 w-20 bg-sage-light rounded-full flex items-center justify-center">
+                  <span className="text-3xl font-semibold text-forest">
                     JD
                   </span>
                 </div>
-                <div className="ml-4">
-                  <h2 className="text-xl font-semibold text-gray-900">
+                <div className="ml-6">
+                  <h2 className="text-2xl font-semibold text-forest">
                     John Doe
                   </h2>
-                  <p className="text-gray-600">demo@terratraks.com</p>
-                  <span className="inline-block mt-2 px-3 py-1 text-xs font-medium bg-gray-100 text-gray-800 rounded-full">
+                  <p className="text-forest/70 mt-1">demo@terratraks.com</p>
+                  <span className="inline-block mt-3 px-4 py-1.5 text-sm font-medium bg-sage-light text-forest rounded-full">
                     Free Plan
                   </span>
                 </div>
@@ -43,11 +43,11 @@ export default function DashboardPage() {
               <div className="flex space-x-4">
                 <Link
                   href="/pricing"
-                  className="px-4 py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition-colors"
+                  className="px-6 py-3 border-2 border-forest text-forest rounded-lg hover:bg-forest hover:text-offwhite transition-all font-medium"
                 >
                   Upgrade to Premium
                 </Link>
-                <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors">
+                <button className="px-6 py-3 border-2 border-sage/50 text-forest rounded-lg hover:bg-sage/10 transition-colors font-medium">
                   Edit Profile
                 </button>
               </div>
@@ -55,15 +55,15 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             <Link
               href="/new-itinerary"
-              className="bg-white shadow rounded-lg p-6 hover:shadow-lg transition-shadow"
+              className="bg-white shadow-md rounded-xl p-6 hover:shadow-lg transition-all border-2 border-transparent hover:border-sage/30"
             >
               <div className="flex items-center">
-                <div className="bg-blue-100 rounded-full p-3">
+                <div className="bg-sage-light rounded-full p-4">
                   <svg
-                    className="h-6 w-6 text-blue-600"
+                    className="h-7 w-7 text-forest"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -77,21 +77,21 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-forest">
                     Create New Trip
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-forest/70 mt-1">
                     Plan your next adventure
                   </p>
                 </div>
               </div>
             </Link>
 
-            <div className="bg-white shadow rounded-lg p-6">
+            <div className="bg-white shadow-md rounded-xl p-6 border-2 border-transparent">
               <div className="flex items-center">
-                <div className="bg-green-100 rounded-full p-3">
+                <div className="bg-sky-light rounded-full p-4">
                   <svg
-                    className="h-6 w-6 text-green-600"
+                    className="h-7 w-7 text-forest"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -105,21 +105,21 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-forest">
                     View Expenses
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-forest/70 mt-1">
                     Track your spending
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white shadow rounded-lg p-6">
+            <div className="bg-white shadow-md rounded-xl p-6 border-2 border-transparent">
               <div className="flex items-center">
-                <div className="bg-purple-100 rounded-full p-3">
+                <div className="bg-sand rounded-full p-4">
                   <svg
-                    className="h-6 w-6 text-purple-600"
+                    className="h-7 w-7 text-forest"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -139,10 +139,10 @@ export default function DashboardPage() {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-forest">
                     Settings
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-forest/70 mt-1">
                     Manage account
                   </p>
                 </div>
@@ -151,14 +151,14 @@ export default function DashboardPage() {
           </div>
 
           {/* Itineraries List */}
-          <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">
+          <div className="bg-white shadow-lg rounded-2xl p-8">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold text-forest">
                 My Itineraries
               </h2>
               <Link
                 href="/new-itinerary"
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-forest text-offwhite rounded-lg hover:bg-forest-light transition-all shadow-md hover:shadow-lg font-semibold"
               >
                 + New Itinerary
               </Link>
@@ -168,22 +168,22 @@ export default function DashboardPage() {
             <div className="space-y-4">
               <Link
                 href="/itinerary/1"
-                className="block p-4 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all"
+                className="block p-6 border-2 border-sage/20 rounded-xl hover:border-sage hover:shadow-md transition-all bg-sage-light/10"
               >
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
+                    <h3 className="text-xl font-semibold text-forest">
                       Trip to Paris, France
                     </h3>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-forest/70 mt-2">
                       June 1, 2024 - June 7, 2024
                     </p>
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-forest/60 mt-1">
                       A wonderful trip to the City of Light
                     </p>
                   </div>
                   <svg
-                    className="h-5 w-5 text-gray-400"
+                    className="h-6 w-6 text-forest/40"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -198,9 +198,9 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <div className="p-8 text-center text-gray-500">
+              <div className="p-12 text-center text-forest/60">
                 <svg
-                  className="h-12 w-12 mx-auto mb-4 text-gray-400"
+                  className="h-16 w-16 mx-auto mb-4 text-sage"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -212,10 +212,10 @@ export default function DashboardPage() {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <p className="text-gray-600 mb-2">No more itineraries yet</p>
+                <p className="text-forest/70 mb-3 text-lg">No more itineraries yet</p>
                 <Link
                   href="/new-itinerary"
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-sky hover:text-sky-dark font-semibold text-lg"
                 >
                   Create your first itinerary →
                 </Link>
@@ -223,8 +223,8 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="mt-8 p-4 bg-blue-50 rounded-md">
-            <p className="text-sm text-blue-800">
+          <div className="mt-10 p-5 bg-sage-light/50 rounded-lg border border-sage/30">
+            <p className="text-sm text-forest/80">
               <strong>Note:</strong> This is a placeholder dashboard showing
               sample data. The functionality to fetch and display actual user
               data and itineraries from the database will be implemented in
@@ -235,4 +235,3 @@ export default function DashboardPage() {
       </main>
   );
 }
-

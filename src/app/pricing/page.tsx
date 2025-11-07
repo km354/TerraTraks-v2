@@ -7,32 +7,32 @@ import Link from 'next/link';
  */
 export default function PricingPage() {
   return (
-    <main className="min-h-screen bg-gray-50 py-16">
+    <main className="min-h-screen bg-offwhite py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          <div className="text-center mb-20">
+            <h1 className="text-5xl font-bold text-forest mb-6">
               Choose Your Plan
             </h1>
-            <p className="text-xl text-gray-600">
+            <p className="text-xl text-forest/70 max-w-2xl mx-auto">
               Select the plan that works best for you
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-5xl mx-auto">
             {/* Free Plan */}
-            <div className="bg-white rounded-lg shadow-lg p-8">
+            <div className="bg-white rounded-2xl shadow-lg p-10 hover:shadow-xl transition-shadow">
               <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                <h2 className="text-3xl font-bold text-forest mb-4">
                   Free Plan
                 </h2>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold text-gray-900">$0</span>
-                  <span className="text-gray-600">/month</span>
+                <div className="mb-8">
+                  <span className="text-5xl font-bold text-forest">$0</span>
+                  <span className="text-forest/70 text-xl">/month</span>
                 </div>
-                <ul className="space-y-4 mb-8 text-left">
+                <ul className="space-y-5 mb-10 text-left">
                   <li className="flex items-start">
                     <svg
-                      className="h-5 w-5 text-green-500 mr-2 mt-0.5"
+                      className="h-6 w-6 text-sage mr-3 mt-0.5 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -44,13 +44,13 @@ export default function PricingPage() {
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    <span className="text-gray-700">
+                    <span className="text-forest/80">
                       Up to 3 itineraries
                     </span>
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="h-5 w-5 text-green-500 mr-2 mt-0.5"
+                      className="h-6 w-6 text-sage mr-3 mt-0.5 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -62,13 +62,13 @@ export default function PricingPage() {
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    <span className="text-gray-700">
+                    <span className="text-forest/80">
                       Basic AI itinerary generation
                     </span>
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="h-5 w-5 text-green-500 mr-2 mt-0.5"
+                      className="h-6 w-6 text-sage mr-3 mt-0.5 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -80,13 +80,13 @@ export default function PricingPage() {
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    <span className="text-gray-700">
+                    <span className="text-forest/80">
                       Expense tracking
                     </span>
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="h-5 w-5 text-green-500 mr-2 mt-0.5"
+                      className="h-6 w-6 text-sage mr-3 mt-0.5 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -98,14 +98,14 @@ export default function PricingPage() {
                         d="M5 13l4 4L19 7"
                       />
                     </svg>
-                    <span className="text-gray-700">
+                    <span className="text-forest/80">
                       Access from any device
                     </span>
                   </li>
                 </ul>
                 <Link
                   href="/new-itinerary"
-                  className="block w-full px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-md text-center font-medium hover:bg-blue-50 transition-colors"
+                  className="block w-full px-8 py-4 border-2 border-forest text-forest rounded-lg text-center font-semibold hover:bg-forest hover:text-offwhite transition-all"
                 >
                   Get Started
                 </Link>
@@ -113,20 +113,20 @@ export default function PricingPage() {
             </div>
 
             {/* Premium Plan */}
-            <div className="bg-blue-600 rounded-lg shadow-xl p-8 text-white relative">
-              <div className="absolute top-0 right-0 bg-yellow-400 text-yellow-900 px-3 py-1 rounded-bl-lg text-sm font-semibold">
+            <div className="bg-gradient-to-br from-forest to-forest-light rounded-2xl shadow-xl p-10 text-offwhite relative transform scale-105">
+              <div className="absolute top-0 right-0 bg-sky text-forest px-4 py-2 rounded-bl-2xl rounded-tr-2xl text-sm font-bold">
                 Popular
               </div>
               <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">Premium Plan</h2>
-                <div className="mb-6">
-                  <span className="text-4xl font-bold">$9.99</span>
-                  <span className="text-blue-200">/month</span>
+                <h2 className="text-3xl font-bold mb-4">Premium Plan</h2>
+                <div className="mb-8">
+                  <span className="text-5xl font-bold">$9.99</span>
+                  <span className="text-sage-light text-xl">/month</span>
                 </div>
-                <ul className="space-y-4 mb-8 text-left">
+                <ul className="space-y-5 mb-10 text-left">
                   <li className="flex items-start">
                     <svg
-                      className="h-5 w-5 text-yellow-400 mr-2 mt-0.5"
+                      className="h-6 w-6 text-sky-light mr-3 mt-0.5 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -142,7 +142,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="h-5 w-5 text-yellow-400 mr-2 mt-0.5"
+                      className="h-6 w-6 text-sky-light mr-3 mt-0.5 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -158,7 +158,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="h-5 w-5 text-yellow-400 mr-2 mt-0.5"
+                      className="h-6 w-6 text-sky-light mr-3 mt-0.5 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -174,7 +174,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="h-5 w-5 text-yellow-400 mr-2 mt-0.5"
+                      className="h-6 w-6 text-sky-light mr-3 mt-0.5 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -190,7 +190,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="h-5 w-5 text-yellow-400 mr-2 mt-0.5"
+                      className="h-6 w-6 text-sky-light mr-3 mt-0.5 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -206,7 +206,7 @@ export default function PricingPage() {
                   </li>
                   <li className="flex items-start">
                     <svg
-                      className="h-5 w-5 text-yellow-400 mr-2 mt-0.5"
+                      className="h-6 w-6 text-sky-light mr-3 mt-0.5 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -223,7 +223,7 @@ export default function PricingPage() {
                 </ul>
                 <Link
                   href="/dashboard"
-                  className="block w-full px-6 py-3 bg-white text-blue-600 rounded-md text-center font-medium hover:bg-blue-50 transition-colors"
+                  className="block w-full px-8 py-4 bg-offwhite text-forest rounded-lg text-center font-semibold hover:bg-sage-light transition-all shadow-lg"
                 >
                   Upgrade to Premium
                 </Link>
@@ -232,35 +232,35 @@ export default function PricingPage() {
           </div>
 
           {/* FAQ Section */}
-          <div className="mt-16 max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-8">
+          <div className="mt-24 max-w-3xl mx-auto">
+            <h2 className="text-4xl font-bold text-forest text-center mb-12">
               Frequently Asked Questions
             </h2>
             <div className="space-y-6">
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className="bg-white rounded-xl shadow-sm p-8">
+                <h3 className="text-xl font-semibold text-forest mb-3">
                   Can I cancel my subscription anytime?
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-forest/70 leading-relaxed">
                   Yes, you can cancel your Premium subscription at any time. You
                   will continue to have access to Premium features until the end
                   of your billing period.
                 </p>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className="bg-white rounded-xl shadow-sm p-8">
+                <h3 className="text-xl font-semibold text-forest mb-3">
                   What payment methods do you accept?
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-forest/70 leading-relaxed">
                   We accept all major credit cards and PayPal through our secure
                   payment processor, Stripe.
                 </p>
               </div>
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <div className="bg-white rounded-xl shadow-sm p-8">
+                <h3 className="text-xl font-semibold text-forest mb-3">
                   Is my data secure?
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-forest/70 leading-relaxed">
                   Yes, we use industry-standard encryption and security measures
                   to protect your data. Your itineraries and personal
                   information are safe with us.
@@ -272,4 +272,3 @@ export default function PricingPage() {
       </main>
   );
 }
-
