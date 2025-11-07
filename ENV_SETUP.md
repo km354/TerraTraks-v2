@@ -81,6 +81,38 @@ This guide explains how to set up all required API keys and environment variable
 
 ---
 
+### 6. Supabase Credentials
+**Purpose**: Database and backend services
+
+**How to get them**:
+1. Go to [Supabase](https://supabase.com)
+2. Sign up or sign in
+3. Create a new project
+4. Go to Project Settings → API
+5. Copy:
+   - **Project URL** (e.g., `https://xxxxx.supabase.co`)
+   - **anon/public key** (starts with `eyJ...`)
+   - **service_role key** (optional, for admin operations - keep this secret!)
+
+**Cost**: Free tier available (500MB database, 2GB bandwidth)
+
+---
+
+### 7. Auth Secret
+**Purpose**: Encryption key for NextAuth session tokens
+
+**How to generate it**:
+1. Run this command in your terminal:
+   ```bash
+   openssl rand -base64 32
+   ```
+2. Copy the generated string
+3. Add it to your `.env.local` as `AUTH_SECRET`
+
+**Alternative**: You can use any random string, but the OpenSSL method is recommended for security.
+
+---
+
 ## 🚀 Local Development Setup
 
 ### Step 1: Create `.env.local` file
@@ -123,6 +155,10 @@ Add each variable with its corresponding value:
 | `STRIPE_PUBLISHABLE_KEY` | Your Stripe Publishable Key | Production, Preview, Development |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Your Stripe Publishable Key | Production, Preview, Development |
 | `STRIPE_WEBHOOK_SECRET` | Your Stripe Webhook Secret | Production, Preview |
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase Project URL | Production, Preview, Development |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase Anon Key | Production, Preview, Development |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase Service Role Key | Production, Preview |
+| `AUTH_SECRET` | Generated auth secret | Production, Preview, Development |
 | `NEXT_PUBLIC_APP_URL` | `https://yourdomain.com` | Production |
 | `NODE_ENV` | `production` | Production |
 

@@ -4,21 +4,37 @@ This is a [Next.js](https://nextjs.org/) project bootstrapped for TerraTraks.
 
 ## Getting Started
 
-First, install the dependencies:
+### Installation
 
-```bash
-npm install
-```
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-Then, run the development server:
+2. **Set up environment variables**:
+   ```bash
+   cp .env.example .env.local
+   # Then fill in all API keys in .env.local
+   ```
 
-```bash
-npm run dev
-```
+3. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. **Open your browser**:
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `src/app/page.tsx`. The page auto-updates as you edit the file.
+For detailed installation instructions, see [INSTALLATION.md](./INSTALLATION.md).
+
+### Installed Libraries
+
+- ✅ **OpenAI** - For GPT-4/GPT-3.5 API calls
+- ✅ **NextAuth v5** - Authentication with Google OAuth
+- ✅ **Stripe** - Payment processing
+- ✅ **Supabase** - Database and backend services
+- ✅ **Tailwind CSS** - Utility-first CSS framework
+- ✅ **Built-in fetch** - For OpenWeatherMap API calls
 
 ## Learn More
 

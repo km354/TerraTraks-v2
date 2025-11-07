@@ -57,13 +57,29 @@ For each variable below, click **Add New** and fill in:
     - Value: Your Stripe Webhook Secret
     - Environments: ☑ Production ☑ Preview
 
-11. **NEXT_PUBLIC_APP_URL**
+11. **NEXT_PUBLIC_SUPABASE_URL**
+    - Value: Your Supabase Project URL
+    - Environments: ☑ Production ☑ Preview ☑ Development
+
+12. **NEXT_PUBLIC_SUPABASE_ANON_KEY**
+    - Value: Your Supabase Anon Key
+    - Environments: ☑ Production ☑ Preview ☑ Development
+
+13. **SUPABASE_SERVICE_ROLE_KEY**
+    - Value: Your Supabase Service Role Key (optional, for admin operations)
+    - Environments: ☑ Production ☑ Preview
+
+14. **AUTH_SECRET**
+    - Value: Generated auth secret (use the same one from .env.local or generate new: `openssl rand -base64 32`)
+    - Environments: ☑ Production ☑ Preview ☑ Development
+
+15. **NEXT_PUBLIC_APP_URL**
     - Value (Production): `https://yourdomain.vercel.app`
     - Value (Preview): `https://your-preview-url.vercel.app`
     - Value (Development): `http://localhost:3000`
     - Environments: ☑ Production ☑ Preview ☑ Development
 
-12. **NODE_ENV**
+16. **NODE_ENV**
     - Value (Production): `production`
     - Value (Preview/Development): `development`
     - Environments: ☑ Production ☑ Preview ☑ Development
@@ -91,6 +107,10 @@ Use this checklist to ensure you've added everything:
 ☐ STRIPE_PUBLISHABLE_KEY
 ☐ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 ☐ STRIPE_WEBHOOK_SECRET
+☐ NEXT_PUBLIC_SUPABASE_URL
+☐ NEXT_PUBLIC_SUPABASE_ANON_KEY
+☐ SUPABASE_SERVICE_ROLE_KEY (optional)
+☐ AUTH_SECRET
 ☐ NEXT_PUBLIC_APP_URL (different for prod/preview/dev)
 ☐ NODE_ENV (different for prod/preview)
 ```

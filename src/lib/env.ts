@@ -63,6 +63,23 @@ export const stripe = {
 };
 
 /**
+ * Supabase Configuration
+ */
+export const supabase = {
+  url: getEnvVar('NEXT_PUBLIC_SUPABASE_URL'),
+  anonKey: getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY'),
+  serviceRoleKey: getEnvVar('SUPABASE_SERVICE_ROLE_KEY'),
+};
+
+/**
+ * NextAuth Configuration
+ */
+export const auth = {
+  secret: getEnvVar('AUTH_SECRET'),
+  url: getEnvVar('NEXT_PUBLIC_APP_URL', false) || 'http://localhost:3000',
+};
+
+/**
  * Application Configuration
  */
 export const app = {
@@ -86,6 +103,9 @@ export function validateEnv(): void {
     'STRIPE_SECRET_KEY',
     'STRIPE_PUBLISHABLE_KEY',
     'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+    'NEXT_PUBLIC_SUPABASE_URL',
+    'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'AUTH_SECRET',
   ];
 
   const missing: string[] = [];
