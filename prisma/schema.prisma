@@ -1,0 +1,105 @@
+// Prisma Schema for TerraTraks
+// This file defines the database schema for the application
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model - stores user account information
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Subscription information
+  subscriptionStatus String? @default("free") @map("subscription_status") // free, active, cancelled, past_due
+  stripeCustomerId   String? @unique @map("stripe_customer_id")
+  stripeSubscriptionId String? @unique @map("stripe_subscription_id")
+  subscriptionEndsAt DateTime? @map("subscription_ends_at")
+
+  // Relations
+  itineraries Itinerary[]
+  expenses    Expense[]
+
+  @@map("users")
+}
+
+// Itinerary model - stores travel itineraries
+model Itinerary {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  title       String
+  destination String
+  description String?
+  startDate   DateTime? @map("start_date")
+  endDate     DateTime? @map("end_date")
+  isPublic    Boolean  @default(false) @map("is_public")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       ItineraryItem[]
+  expenses    Expense[]
+
+  @@index([userId])
+  @@index([destination])
+  @@map("itineraries")
+}
+
+// ItineraryItem model - stores individual items/activities in an itinerary
+model ItineraryItem {
+  id          String    @id @default(cuid())
+  itineraryId String    @map("itinerary_id")
+  title       String
+  description String?
+  location    String?
+  startTime   DateTime? @map("start_time")
+  endTime     DateTime? @map("end_time")
+  date        DateTime?
+  category    String?   // e.g., "accommodation", "activity", "transportation", "food", "other"
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  itinerary   Itinerary @relation(fields: [itineraryId], references: [id], onDelete: Cascade)
+
+  @@index([itineraryId])
+  @@index([date])
+  @@map("itinerary_items")
+}
+
+// Expense model - stores expenses related to itineraries
+model Expense {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  itineraryId String?   @map("itinerary_id")
+  title       String
+  description String?
+  amount      Decimal   @db.Decimal(10, 2)
+  currency    String    @default("USD")
+  category    String?   // e.g., "accommodation", "food", "transportation", "activity", "shopping", "other"
+  date        DateTime  @default(now())
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itinerary   Itinerary? @relation(fields: [itineraryId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([itineraryId])
+  @@index([date])
+  @@map("expenses")
+}
+

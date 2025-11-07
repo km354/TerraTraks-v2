@@ -72,6 +72,13 @@ export const supabase = {
 };
 
 /**
+ * Database Configuration
+ */
+export const database = {
+  url: getEnvVar('DATABASE_URL'),
+};
+
+/**
  * NextAuth Configuration
  */
 export const auth = {
@@ -105,6 +112,7 @@ export function validateEnv(): void {
     'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
+    'DATABASE_URL',
     'AUTH_SECRET',
   ];
 

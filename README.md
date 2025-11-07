@@ -33,8 +33,34 @@ For detailed installation instructions, see [INSTALLATION.md](./INSTALLATION.md)
 - ✅ **NextAuth v5** - Authentication with Google OAuth
 - ✅ **Stripe** - Payment processing
 - ✅ **Supabase** - Database and backend services
+- ✅ **Prisma** - ORM for database management
 - ✅ **Tailwind CSS** - Utility-first CSS framework
 - ✅ **Built-in fetch** - For OpenWeatherMap API calls
+
+### Database Setup
+
+The project uses Prisma with PostgreSQL (via Supabase) for data persistence.
+
+1. **Set up the database** (see [DATABASE_SETUP.md](./DATABASE_SETUP.md)):
+   ```bash
+   # Install dependencies
+   npm install
+   
+   # Generate Prisma Client
+   npm run db:generate
+   
+   # Push schema to database
+   npm run db:push
+   
+   # (Optional) Seed database
+   npm run db:seed
+   ```
+
+2. **Database models**:
+   - User (accounts, subscription status)
+   - Itinerary (travel plans)
+   - ItineraryItem (activities, accommodations, etc.)
+   - Expense (travel expenses)
 
 ## Learn More
 

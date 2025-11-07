@@ -113,6 +113,27 @@ This guide explains how to set up all required API keys and environment variable
 
 ---
 
+### 8. Database URL (Prisma)
+**Purpose**: PostgreSQL database connection for Prisma
+
+**How to get it**:
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Navigate to **Settings** → **Database**
+4. Scroll down to **Connection string**
+5. Select **URI** tab
+6. Copy the connection string
+7. Replace `[YOUR-PASSWORD]` with your database password
+   - Find/reset password in **Settings** → **Database** → **Database password**
+
+Format: `postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres`
+
+**Cost**: Included with Supabase free tier
+
+For detailed database setup, see [DATABASE_SETUP.md](./DATABASE_SETUP.md).
+
+---
+
 ## 🚀 Local Development Setup
 
 ### Step 1: Create `.env.local` file
@@ -158,6 +179,7 @@ Add each variable with its corresponding value:
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase Project URL | Production, Preview, Development |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase Anon Key | Production, Preview, Development |
 | `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase Service Role Key | Production, Preview |
+| `DATABASE_URL` | Your Supabase Database Connection String | Production, Preview, Development |
 | `AUTH_SECRET` | Generated auth secret | Production, Preview, Development |
 | `NEXT_PUBLIC_APP_URL` | `https://yourdomain.com` | Production |
 | `NODE_ENV` | `production` | Production |

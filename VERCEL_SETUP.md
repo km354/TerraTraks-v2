@@ -69,17 +69,21 @@ For each variable below, click **Add New** and fill in:
     - Value: Your Supabase Service Role Key (optional, for admin operations)
     - Environments: ☑ Production ☑ Preview
 
-14. **AUTH_SECRET**
+14. **DATABASE_URL**
+    - Value: Your Supabase Database Connection String (postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres)
+    - Environments: ☑ Production ☑ Preview ☑ Development
+
+15. **AUTH_SECRET**
     - Value: Generated auth secret (use the same one from .env.local or generate new: `openssl rand -base64 32`)
     - Environments: ☑ Production ☑ Preview ☑ Development
 
-15. **NEXT_PUBLIC_APP_URL**
+16. **NEXT_PUBLIC_APP_URL**
     - Value (Production): `https://yourdomain.vercel.app`
     - Value (Preview): `https://your-preview-url.vercel.app`
     - Value (Development): `http://localhost:3000`
     - Environments: ☑ Production ☑ Preview ☑ Development
 
-16. **NODE_ENV**
+17. **NODE_ENV**
     - Value (Production): `production`
     - Value (Preview/Development): `development`
     - Environments: ☑ Production ☑ Preview ☑ Development
@@ -110,6 +114,7 @@ Use this checklist to ensure you've added everything:
 ☐ NEXT_PUBLIC_SUPABASE_URL
 ☐ NEXT_PUBLIC_SUPABASE_ANON_KEY
 ☐ SUPABASE_SERVICE_ROLE_KEY (optional)
+☐ DATABASE_URL
 ☐ AUTH_SECRET
 ☐ NEXT_PUBLIC_APP_URL (different for prod/preview/dev)
 ☐ NODE_ENV (different for prod/preview)
