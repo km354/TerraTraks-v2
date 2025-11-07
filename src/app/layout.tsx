@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { validateEnv } from "@/lib/env";
+import Navigation from "@/components/Navigation";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,8 +12,8 @@ if (process.env.NODE_ENV === "development") {
 }
 
 export const metadata: Metadata = {
-  title: "TerraTraks",
-  description: "TerraTraks application",
+  title: "TerraTraks - AI-Powered Trip Planning",
+  description: "Plan your perfect trip with AI-powered itinerary generation and expense tracking",
 };
 
 export default function RootLayout({
@@ -22,7 +23,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <Navigation />
+        {children}
+      </body>
     </html>
   );
 }
