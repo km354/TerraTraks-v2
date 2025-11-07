@@ -37,3 +37,27 @@ Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ✅ Automatic commits and pushes to GitHub are now configured. All changes made to this project will be automatically committed and pushed to the repository.
 
+## Environment Variables Setup
+
+⚠️ **Important**: Before running the application, you need to configure environment variables.
+
+1. **Copy the example file**:
+   ```bash
+   cp .env.example .env.local
+   ```
+
+2. **Fill in your API keys** in `.env.local`:
+   - OpenAI API key
+   - OpenWeatherMap API key
+   - Google Maps Static API key
+   - Google OAuth credentials
+   - Stripe API keys
+
+3. **For detailed setup instructions**, see:
+   - [ENV_SETUP.md](./ENV_SETUP.md) - Complete guide for obtaining API keys
+   - [VERCEL_SETUP.md](./VERCEL_SETUP.md) - Setting up variables in Vercel
+
+4. **For production deployment**, add all environment variables in Vercel Dashboard:
+   - Project Settings → Environment Variables
+   - See [VERCEL_SETUP.md](./VERCEL_SETUP.md) for step-by-step instructions
+
