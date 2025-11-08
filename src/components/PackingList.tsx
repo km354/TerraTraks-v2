@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PackingItem, PackingList as PackingListType } from '@/lib/packing-list';
+import { PackingItem, PackingList as PackingListType, generateFallbackPackingList } from '@/lib/packing-list';
 import { AffiliateLink } from './AffiliateLink';
 import { getGearAffiliateLink } from '@/lib/affiliates';
 
@@ -67,11 +67,37 @@ export function PackingList({
           }),
         });
 
+        const data = await response.json();
+
         if (!response.ok) {
-          throw new Error('Failed to generate packing list');
+          // Even if API fails, try to use fallback list if provided
+          if (data.packingList) {
+            setPackingList(data.packingList);
+            setGroupedItems(
+              data.packingList.items.reduce((acc: Record<string, PackingItem[]>, item: PackingItem) => {
+                (acc[item.category] = acc[item.category] || []).push(item);
+                return acc;
+              }, {})
+            );
+            return;
+          }
+          throw new Error(data.error || 'Failed to generate packing list');
         }
 
-        const data = await response.json();
+        // Validate response data
+        if (!data.packingList || !data.packingList.items || data.packingList.items.length === 0) {
+          // Use fallback if response is invalid
+          const fallbackList = generateFallbackPackingList(null, duration);
+          setPackingList(fallbackList);
+          setGroupedItems(
+            fallbackList.items.reduce((acc: Record<string, PackingItem[]>, item: PackingItem) => {
+              (acc[item.category] = acc[item.category] || []).push(item);
+              return acc;
+            }, {})
+          );
+          return;
+        }
+
         setPackingList(data.packingList);
 
         // Group items by category

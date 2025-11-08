@@ -116,8 +116,12 @@ export function generateStaticMapUrl(
     params.push(`center=${encodeURIComponent(markers[0].location)}`);
   }
 
-  // Add markers
-  markers.forEach((marker, index) => {
+  // Add markers (limit to 50 as per Google Static Maps API limits)
+  // We further limit to 20 for performance and URL length concerns
+  const maxMarkersForUrl = 20;
+  const markersToUse = markers.slice(0, maxMarkersForUrl);
+  
+  markersToUse.forEach((marker) => {
     let markerParam = `markers=`;
     
     if (marker.color) {
@@ -131,6 +135,11 @@ export function generateStaticMapUrl(
     markerParam += encodeURIComponent(marker.location);
     params.push(markerParam);
   });
+  
+  // Warn if markers were truncated
+  if (markers.length > maxMarkersForUrl) {
+    console.warn(`Too many markers (${markers.length}). Limiting to ${maxMarkersForUrl} for map URL.`);
+  }
 
   // Add path if provided (for route visualization)
   if (path && path.length > 1) {

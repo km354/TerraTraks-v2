@@ -37,7 +37,16 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    const body: GenerateItineraryRequest = await request.json();
+    let body: GenerateItineraryRequest;
+    
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      );
+    }
 
     // Validate required fields
     if (!body.destination || !body.startDate || !body.endDate) {
@@ -47,12 +56,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate dates
+    const startDate = new Date(body.startDate);
+    const endDate = new Date(body.endDate);
+    
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      return NextResponse.json(
+        { error: 'Invalid date format' },
+        { status: 400 }
+      );
+    }
+
+    if (endDate < startDate) {
+      return NextResponse.json(
+        { error: 'End date must be after start date' },
+        { status: 400 }
+      );
+    }
+
     // Check user's subscription status for itinerary limits
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { 
         subscriptionStatus: true,
-        _count: { select: { itineraries: true } }
+        _count: { 
+          select: { 
+            itineraries: {
+              where: {
+                isPreset: false, // Don't count preset itineraries
+              },
+            },
+          },
+        },
       },
     });
 
@@ -78,23 +113,31 @@ export async function POST(request: NextRequest) {
     }
 
     // Calculate duration if not provided
-    const startDate = new Date(body.startDate);
-    const endDate = new Date(body.endDate);
-    const duration = body.duration || Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const duration = body.duration || Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+
+    // Validate duration
+    if (duration < 1 || duration > 365) {
+      return NextResponse.json(
+        { error: 'Trip duration must be between 1 and 365 days' },
+        { status: 400 }
+      );
+    }
 
     // Build the prompt for OpenAI
     const prompt = buildItineraryPrompt(body, duration);
 
-    // Call OpenAI API
-    const openai = getOpenAIClient();
-    const model = isPremium ? 'gpt-4' : 'gpt-3.5-turbo'; // Premium users get GPT-4
-    
-    const completion = await openai.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content: `You are an expert travel guide and itinerary planner. Create detailed, practical, and engaging travel itineraries. 
+    // Call OpenAI API with error handling
+    let itineraryContent: string;
+    try {
+      const openai = getOpenAIClient();
+      const model = isPremium ? 'gpt-4' : 'gpt-3.5-turbo'; // Premium users get GPT-4
+      
+      const completion = await openai.chat.completions.create({
+        model,
+        messages: [
+          {
+            role: 'system',
+            content: `You are an expert travel guide and itinerary planner. Create detailed, practical, and engaging travel itineraries. 
 
 Format your response as follows:
 - Use clear day-by-day sections (Day 1, Day 2, etc.)
@@ -107,19 +150,45 @@ Format your response as follows:
 - Make it engaging and tailored to the user's interests
 
 Use markdown formatting with clear headings for each day.`
-        },
-        {
-          role: 'user',
-          content: prompt
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000,
+      });
+
+      itineraryContent = completion.choices[0]?.message?.content || '';
+
+      if (!itineraryContent || itineraryContent.trim().length === 0) {
+        throw new Error('OpenAI returned empty response');
+      }
+    } catch (openaiError: any) {
+      console.error('OpenAI API error:', openaiError);
+      
+      // Handle specific OpenAI errors
+      if (openaiError instanceof OpenAI.APIError) {
+        if (openaiError.status === 429) {
+          return NextResponse.json(
+            { error: 'AI service is temporarily unavailable. Please try again in a few moments.' },
+            { status: 503 }
+          );
         }
-      ],
-      temperature: 0.7,
-      max_tokens: 3000,
-    });
-
-    const itineraryContent = completion.choices[0]?.message?.content || '';
-
-    if (!itineraryContent) {
+        if (openaiError.status === 401) {
+          return NextResponse.json(
+            { error: 'AI service configuration error. Please contact support.' },
+            { status: 500 }
+          );
+        }
+        return NextResponse.json(
+          { error: `AI service error: ${openaiError.message}` },
+          { status: 500 }
+        );
+      }
+      
+      // Generic error
       return NextResponse.json(
         { error: 'Failed to generate itinerary. Please try again.' },
         { status: 500 }
@@ -133,48 +202,66 @@ Use markdown formatting with clear headings for each day.`
     const budget = body.budget ? parseFloat(body.budget) : null;
     const budgetCurrency = 'USD'; // Default to USD, can be made configurable later
 
-    // Save itinerary to database
-    const itinerary = await prisma.itinerary.create({
-      data: {
-        userId,
-        title,
-        destination: body.destination,
-        description: body.description || itineraryContent.substring(0, 500), // Use first 500 chars as description
-        startDate: startDate,
-        endDate: endDate,
-        budget: budget,
-        budgetCurrency: budgetCurrency,
-        isPublic: false,
-        items: {
-          create: parseItineraryContent(itineraryContent, startDate),
-        },
-      },
-      include: {
-        items: true,
-      },
-    });
-
-    return NextResponse.json({
-      success: true,
-      itinerary: {
-        id: itinerary.id,
-        title: itinerary.title,
-        destination: itinerary.destination,
-      },
-    });
-  } catch (error: any) {
-    console.error('Error generating itinerary:', error);
-    
-    // Handle OpenAI API errors
-    if (error instanceof OpenAI.APIError) {
+    // Validate budget if provided
+    if (budget !== null && (isNaN(budget) || budget < 0)) {
       return NextResponse.json(
-        { error: `OpenAI API error: ${error.message}` },
-        { status: 500 }
+        { error: 'Invalid budget amount' },
+        { status: 400 }
       );
     }
 
+    // Parse itinerary content into items
+    let itineraryItems;
+    try {
+      itineraryItems = parseItineraryContent(itineraryContent, startDate);
+    } catch (parseError) {
+      console.error('Error parsing itinerary content:', parseError);
+      // Continue with empty items array - better than failing completely
+      itineraryItems = [];
+    }
+
+    // Save itinerary to database
+    try {
+      const itinerary = await prisma.itinerary.create({
+        data: {
+          userId,
+          title,
+          destination: body.destination,
+          description: body.description || itineraryContent.substring(0, 500), // Use first 500 chars as description
+          startDate: startDate,
+          endDate: endDate,
+          budget: budget,
+          budgetCurrency: budgetCurrency,
+          isPublic: false,
+          isPreset: false,
+          items: {
+            create: itineraryItems,
+          },
+        },
+        include: {
+          items: true,
+        },
+      });
+
+      return NextResponse.json({
+        success: true,
+        itinerary: {
+          id: itinerary.id,
+          title: itinerary.title,
+          destination: itinerary.destination,
+        },
+      });
+    } catch (dbError: any) {
+      console.error('Database error creating itinerary:', dbError);
+      return NextResponse.json(
+        { error: 'Failed to save itinerary. Please try again.' },
+        { status: 500 }
+      );
+    }
+  } catch (error: any) {
+    console.error('Unexpected error generating itinerary:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to generate itinerary. Please try again.' },
+      { error: error.message || 'An unexpected error occurred. Please try again.' },
       { status: 500 }
     );
   }
@@ -184,77 +271,64 @@ Use markdown formatting with clear headings for each day.`
  * Build the prompt for OpenAI based on user inputs
  */
 function buildItineraryPrompt(data: GenerateItineraryRequest, duration: number): string {
-  const parts: string[] = [];
+  const interestsText = data.interests.length > 0
+    ? data.interests.join(', ')
+    : 'general sightseeing and exploration';
 
-  parts.push(`You are an expert travel guide. Plan a ${duration}-day trip to ${data.destination}.`);
+  const difficultyText = data.difficulty
+    ? `Difficulty level: ${data.difficulty}`
+    : '';
 
-  // Group information
-  if (data.groupSize) {
-    parts.push(`Traveling as: ${data.groupSize}.`);
-  }
+  const budgetText = data.budget
+    ? `Budget: $${data.budget}`
+    : data.budgetRange
+    ? `Budget range: ${data.budgetRange}`
+    : '';
 
-  if (data.travelingWith.length > 0) {
-    parts.push(`Traveling with: ${data.travelingWith.join(', ')}.`);
-  }
+  const groupSizeText = data.groupSize || '';
+  const travelingWithText = data.travelingWith.length > 0
+    ? `Traveling with: ${data.travelingWith.join(', ')}`
+    : '';
 
-  // Interests
-  if (data.interests.length > 0) {
-    parts.push(`Interests and activities: ${data.interests.join(', ')}.`);
-  }
+  const startDateFormatted = new Date(data.startDate).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
-  // Difficulty level
-  if (data.difficulty) {
-    const difficultyMap: Record<string, string> = {
-      easy: 'easy and relaxed',
-      moderate: 'moderate',
-      challenging: 'challenging and adventurous',
-      extreme: 'extreme and very strenuous',
-    };
-    parts.push(`Activity level: ${difficultyMap[data.difficulty] || data.difficulty}.`);
-  }
+  const endDateFormatted = new Date(data.endDate).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
 
-  // Budget
-  if (data.budget) {
-    parts.push(`Budget: $${parseFloat(data.budget).toLocaleString()} total for the trip.`);
-  } else if (data.budgetRange) {
-    const budgetMap: Record<string, string> = {
-      budget: 'budget-friendly (under $500 per person)',
-      moderate: 'moderate ($500 - $1,500 per person)',
-      comfortable: 'comfortable ($1,500 - $3,000 per person)',
-      luxury: 'luxury ($3,000+ per person)',
-    };
-    parts.push(`Budget range: ${budgetMap[data.budgetRange] || data.budgetRange}.`);
-  }
+  return `Create a detailed ${duration}-day travel itinerary for ${data.destination}.
 
-  // Additional notes
-  if (data.description) {
-    parts.push(`Additional preferences: ${data.description}`);
-  }
+Trip Dates: ${startDateFormatted} to ${endDateFormatted}
+Interests: ${interestsText}
+${difficultyText ? `${difficultyText}\n` : ''}${budgetText ? `${budgetText}\n` : ''}${groupSizeText ? `Group size: ${groupSizeText}\n` : ''}${travelingWithText ? `${travelingWithText}\n` : ''}
 
-  parts.push(`
-Please create a detailed day-by-day itinerary with:
-- Specific activities and attractions for each day
+Please create a day-by-day itinerary with:
+- Specific activities and attractions
 - Recommended times for each activity
+- Locations/addresses when possible
 - Practical tips and recommendations
-- Restaurant suggestions (if applicable)
-- Transportation options
-- Any special considerations based on the group and interests
+- Information about crowd levels if relevant
+- Suggestions for meals and accommodations if applicable
 
-Format the response in clear sections for each day. Make it practical, engaging, and tailored to the specified interests and activity level.
-  `);
-
-  return parts.join(' ');
+Make the itinerary engaging, practical, and tailored to the specified interests and preferences.`;
 }
 
 /**
- * Parse the AI-generated itinerary content into structured items
- * Extracts day-by-day activities from the markdown-formatted response
+ * Parse AI-generated itinerary content into structured items
  */
 function parseItineraryContent(content: string, startDate: Date): Array<{
   title: string;
   description: string | null;
   location: string | null;
-  date: Date;
+  startTime: Date | null;
+  endTime: Date | null;
+  date: Date | null;
   category: string | null;
   order: number;
 }> {
@@ -262,135 +336,132 @@ function parseItineraryContent(content: string, startDate: Date): Array<{
     title: string;
     description: string | null;
     location: string | null;
-    date: Date;
+    startTime: Date | null;
+    endTime: Date | null;
+    date: Date | null;
     category: string | null;
     order: number;
   }> = [];
 
-  const lines = content.split('\n');
-  let currentDay = 0;
-  let currentOrder = 0;
-  let currentActivity: { title: string; description: string[]; location: string | null } | null = null;
-  
-  // Regex patterns
-  const dayRegex = /^#+\s*(?:day\s+)?(\d+)|^day\s+(\d+)|^day\s+(one|two|three|four|five|six|seven)/i;
-  const activityRegex = /^[-*•]\s+|^\d+[.)]\s+/;
-  const timeRegex = /\b(\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)?|\d{1,2}\s*(?:AM|PM|am|pm))\b/;
-  const locationRegex = /📍|at\s+([^,\.]+)|location[:\s]+([^,\.]+)/i;
+  try {
+    // Split content by day markers (Day 1, Day 2, etc.)
+    const dayRegex = /(?:^|\n)(?:#+\s*)?(?:Day\s+)?(\d+)[:.\-\s]*(.*?)(?=(?:^|\n)(?:#+\s*)?(?:Day\s+)?\d+[:.\-]|$)/gis;
+    const dayMatches = Array.from(content.matchAll(dayRegex));
 
-  const dayNames: Record<string, number> = {
-    one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7,
-  };
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    
-    // Check if this is a day marker
-    const dayMatch = line.match(dayRegex);
-    if (dayMatch) {
-      // Save previous activity if exists
-      if (currentActivity) {
-        const date = new Date(startDate);
-        date.setDate(date.getDate() + (currentDay - 1));
-        items.push({
-          title: currentActivity.title,
-          description: currentActivity.description.join(' ').trim() || null,
-          location: currentActivity.location,
-          date,
-          category: determineCategory(currentActivity.title + ' ' + currentActivity.description.join(' ')),
-          order: currentOrder++,
-        });
-        currentActivity = null;
-      }
-
-      // Extract day number
-      const dayNum = dayMatch[1] 
-        ? parseInt(dayMatch[1]) 
-        : dayMatch[2] 
-        ? parseInt(dayMatch[2])
-        : dayNames[dayMatch[3]?.toLowerCase() || ''] || 0;
-      
-      if (dayNum > 0) {
-        currentDay = dayNum;
-        currentOrder = 0;
-      }
-      continue;
-    }
-
-    // Skip empty lines, headers, and markdown formatting
-    if (!line || line.startsWith('#') || line.match(/^={3,}$|^-{3,}$/)) {
-      continue;
-    }
-
-    // Check if this is an activity line (bullet point or numbered)
-    if (activityRegex.test(line)) {
-      // Save previous activity
-      if (currentActivity) {
-        const date = new Date(startDate);
-        date.setDate(date.getDate() + (currentDay - 1));
-        items.push({
-          title: currentActivity.title,
-          description: currentActivity.description.join(' ').trim() || null,
-          location: currentActivity.location,
-          date,
-          category: determineCategory(currentActivity.title + ' ' + currentActivity.description.join(' ')),
-          order: currentOrder++,
-        });
-      }
-
-      // Extract activity title (remove bullet/number prefix)
-      const activityText = line.replace(/^[-*•\d.\s)]+/, '').trim();
-      
-      // Split title and description if there's a colon or dash
-      const parts = activityText.split(/[:\-–—]/).map(p => p.trim());
-      const title = parts[0];
-      const description = parts.length > 1 ? [parts.slice(1).join(' - ')] : [];
-
-      // Extract location if present
-      const locationMatch = activityText.match(locationRegex);
-      const location = locationMatch ? (locationMatch[1] || locationMatch[2] || '').trim() : null;
-
-      currentActivity = {
-        title: title.length > 150 ? title.substring(0, 150) : title,
-        description,
-        location,
-      };
-    } else if (currentActivity && line.length > 0) {
-      // Continue building description for current activity
-      if (!line.match(/^#{1,3}\s/)) { // Don't add headers as descriptions
-        currentActivity.description.push(line);
-        
-        // Check for location in description lines
-        if (!currentActivity.location) {
-          const locationMatch = line.match(locationRegex);
-          if (locationMatch) {
-            currentActivity.location = (locationMatch[1] || locationMatch[2] || '').trim();
-          }
+    if (dayMatches.length === 0) {
+      // Fallback: treat entire content as single day
+      const lines = content.split('\n').filter(line => line.trim());
+      lines.forEach((line, index) => {
+        if (line.trim() && !line.match(/^#+\s/)) {
+          items.push({
+            title: line.trim().replace(/^[-*•]\s*/, '').substring(0, 200),
+            description: null,
+            location: null,
+            startTime: null,
+            endTime: null,
+            date: new Date(startDate),
+            category: 'activity',
+            order: index,
+          });
         }
+      });
+      return items;
+    }
+
+    dayMatches.forEach((match, dayIndex) => {
+      const dayNumber = parseInt(match[1] || '1', 10);
+      const dayContent = match[2] || match[0];
+
+      // Calculate date for this day
+      const dayDate = new Date(startDate);
+      dayDate.setDate(dayDate.getDate() + (dayNumber - 1));
+
+      // Extract activities from day content
+      const activityLines = dayContent
+        .split('\n')
+        .filter(line => {
+          const trimmed = line.trim();
+          return trimmed && 
+                 !trimmed.match(/^#+\s/) && 
+                 !trimmed.match(/^Day\s+\d+/i) &&
+                 trimmed.length > 3;
+        });
+
+      activityLines.forEach((line, activityIndex) => {
+        const trimmed = line.trim().replace(/^[-*•]\s*/, '');
+        
+        if (trimmed.length < 3) return;
+
+        // Try to extract location from line (look for patterns like "at X" or "in Y")
+        let location: string | null = null;
+        const locationMatch = trimmed.match(/(?:at|in|near|visit)\s+([A-Z][^,.!?]+(?:,\s*[A-Z][^,.!?]+)*)/i);
+        if (locationMatch) {
+          location = locationMatch[1].trim();
+        }
+
+        // Try to extract time
+        let startTime: Date | null = null;
+        let endTime: Date | null = null;
+        const timeMatch = trimmed.match(/(\d{1,2}):?(\d{2})?\s*(am|pm|AM|PM)?/i);
+        if (timeMatch) {
+          const hours = parseInt(timeMatch[1], 10);
+          const minutes = timeMatch[2] ? parseInt(timeMatch[2], 10) : 0;
+          const isPM = timeMatch[3]?.toLowerCase() === 'pm';
+          const adjustedHours = isPM && hours !== 12 ? hours + 12 : (!isPM && hours === 12 ? 0 : hours);
+          
+          startTime = new Date(dayDate);
+          startTime.setHours(adjustedHours, minutes, 0, 0);
+        }
+
+        // Determine category based on content
+        let category: string = 'activity';
+        const lowerTrimmed = trimmed.toLowerCase();
+        if (lowerTrimmed.includes('hotel') || lowerTrimmed.includes('accommodation') || lowerTrimmed.includes('lodge')) {
+          category = 'accommodation';
+        } else if (lowerTrimmed.includes('restaurant') || lowerTrimmed.includes('dinner') || lowerTrimmed.includes('lunch') || lowerTrimmed.includes('breakfast') || lowerTrimmed.includes('eat')) {
+          category = 'food';
+        } else if (lowerTrimmed.includes('drive') || lowerTrimmed.includes('transport') || lowerTrimmed.includes('airport')) {
+          category = 'transportation';
+        }
+
+        items.push({
+          title: trimmed.substring(0, 200),
+          description: trimmed.length > 200 ? trimmed.substring(200) : null,
+          location: location,
+          startTime: startTime,
+          endTime: null,
+          date: dayDate,
+          category: category,
+          order: dayIndex * 100 + activityIndex,
+        });
+      });
+    });
+
+    // If no items were parsed, create at least one item from the content
+    if (items.length === 0) {
+      const firstLine = content.split('\n').find(line => line.trim().length > 10);
+      if (firstLine) {
+        items.push({
+          title: firstLine.trim().substring(0, 200),
+          description: content.substring(firstLine.length).trim() || null,
+          location: null,
+          startTime: null,
+          endTime: null,
+          date: startDate,
+          category: 'activity',
+          order: 0,
+        });
       }
     }
-  }
-
-  // Save last activity
-  if (currentActivity) {
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + (currentDay - 1));
+  } catch (error) {
+    console.error('Error parsing itinerary content:', error);
+    // Return at least one item so itinerary can be created
     items.push({
-      title: currentActivity.title,
-      description: currentActivity.description.join(' ').trim() || null,
-      location: currentActivity.location,
-      date,
-      category: determineCategory(currentActivity.title + ' ' + currentActivity.description.join(' ')),
-      order: currentOrder++,
-    });
-  }
-
-  // If no items were parsed, create a default item with the full content
-  if (items.length === 0) {
-    items.push({
-      title: 'Generated Itinerary',
-      description: content.substring(0, 2000),
+      title: `Trip to ${startDate.toLocaleDateString()}`,
+      description: 'Itinerary details',
       location: null,
+      startTime: null,
+      endTime: null,
       date: startDate,
       category: 'activity',
       order: 0,
@@ -399,21 +470,3 @@ function parseItineraryContent(content: string, startDate: Date): Array<{
 
   return items;
 }
-
-/**
- * Determine category based on content
- */
-function determineCategory(text: string): string {
-  const lowerText = text.toLowerCase();
-  
-  if (lowerText.match(/\b(eat|restaurant|food|dining|breakfast|lunch|dinner|meal|cafe|bakery)\b/)) {
-    return 'food';
-  } else if (lowerText.match(/\b(hotel|stay|accommodation|lodging|resort|hostel)\b/)) {
-    return 'accommodation';
-  } else if (lowerText.match(/\b(transport|drive|fly|flight|train|bus|car rental|taxi)\b/)) {
-    return 'transportation';
-  }
-  
-  return 'activity';
-}
-

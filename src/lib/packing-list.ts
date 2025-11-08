@@ -172,7 +172,7 @@ Return ONLY the JSON object, no additional text.`;
 /**
  * Generate a fallback packing list when AI fails
  */
-function generateFallbackPackingList(
+export function generateFallbackPackingList(
   weatherSummary: WeatherSummary | null,
   duration: number
 ): PackingList {

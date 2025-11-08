@@ -213,31 +213,46 @@ export function ItineraryForm() {
         body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
+      // Check if response is JSON
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        // Response is not JSON, likely a server error
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
 
       if (!response.ok) {
         // Handle specific error cases
         if (data.upgradeRequired) {
-          const upgrade = confirm(
-            'You\'ve reached the free plan limit of 3 itineraries. Would you like to upgrade to Premium for unlimited itineraries?'
-          );
-          if (upgrade) {
-            router.push('/pricing');
-            return;
-          }
+          setError('You\'ve reached the free plan limit of 3 itineraries. Upgrade to Premium for unlimited itineraries.');
+          setIsSubmitting(false);
+          // Optionally redirect to pricing after a delay
+          setTimeout(() => {
+            if (confirm('Would you like to upgrade to Premium?')) {
+              router.push('/pricing');
+            }
+          }, 100);
+          return;
         }
-        throw new Error(data.error || 'Failed to generate itinerary');
+        throw new Error(data.error || `Failed to generate itinerary: ${response.status} ${response.statusText}`);
+      }
+
+      // Validate response data
+      if (!data || !data.itinerary) {
+        throw new Error('Invalid response from server');
       }
 
       // Redirect to the new itinerary page
-      if (data.itinerary?.id) {
+      if (data.itinerary.id) {
         router.push(`/itinerary/${data.itinerary.id}`);
       } else {
+        // Fallback to dashboard if no ID
         router.push('/dashboard');
       }
     } catch (error: any) {
       console.error('Error creating itinerary:', error);
-      setError(error.message || 'Failed to create itinerary. Please try again.');
+      setError(error.message || 'Failed to create itinerary. Please check your connection and try again.');
       setIsSubmitting(false);
     }
   };

@@ -168,11 +168,11 @@ export default async function ItineraryPage({
     showRoute: locations.length > 1,
   });
 
-  // Generate per-day maps
-  const dayMaps = await Promise.all(
-    itemsByDate
-      .filter((day) => day.dayNumber > 0)
-      .map(async (day) => {
+  // Generate per-day maps (with error handling)
+  const dayMapPromises = itemsByDate
+    .filter((day) => day.dayNumber > 0)
+    .map(async (day) => {
+      try {
         const dayLocations = day.items
           .filter((item) => item.location)
           .map((item) => ({
@@ -196,15 +196,28 @@ export default async function ItineraryPage({
           dayNumber: day.dayNumber,
           mapUrl: dayMapUrl,
         };
-      })
-  );
+      } catch (error) {
+        console.error(`Error generating map for day ${day.dayNumber}:`, error);
+        return null; // Return null on error, map is optional
+      }
+    });
 
-  // Predict crowd levels for items with locations and dates
+  const dayMapResults = await Promise.allSettled(dayMapPromises);
+  const dayMaps = dayMapResults
+    .filter((result) => result.status === 'fulfilled' && result.value !== null)
+    .map((result) => (result as PromiseFulfilledResult<{ dayNumber: number; mapUrl: string | null } | null>).value)
+    .filter((map): map is { dayNumber: number; mapUrl: string } => map !== null);
+
+  // Predict crowd levels for items with locations and dates (with error handling)
   const isPremium = itinerary.user.subscriptionStatus === 'active';
-  const crowdLevels = await Promise.all(
-    itinerary.items
-      .filter((item) => item.location && item.date)
-      .map(async (item) => {
+  const itemsWithLocationAndDate = itinerary.items.filter(
+    (item) => item.location && item.date
+  );
+  
+  const crowdLevelPromises = itemsWithLocationAndDate
+    .slice(0, 10) // Limit to 10 to avoid API overload
+    .map(async (item) => {
+      try {
         const date = new Date(item.date!);
         const prediction = await predictCrowdLevel(
           item.location!,
@@ -215,8 +228,38 @@ export default async function ItineraryPage({
           itemId: item.id,
           prediction,
         };
-      })
-  );
+      } catch (error) {
+        console.error(`Error predicting crowd level for item ${item.id}:`, error);
+        // Return heuristic-based prediction as fallback
+        try {
+          const date = new Date(item.date!);
+          const fallbackPrediction = await predictCrowdLevel(
+            item.location!,
+            date,
+            false // Use heuristic only
+          );
+          return {
+            itemId: item.id,
+            prediction: fallbackPrediction,
+          };
+        } catch (fallbackError) {
+          // If even fallback fails, return a default prediction
+          return {
+            itemId: item.id,
+            prediction: {
+              level: 'moderate' as const,
+              confidence: 'low' as const,
+              reasoning: 'Unable to predict crowd levels',
+            },
+          };
+        }
+      }
+    });
+
+  const crowdLevelResults = await Promise.allSettled(crowdLevelPromises);
+  const crowdLevels = crowdLevelResults
+    .filter((result) => result.status === 'fulfilled')
+    .map((result) => (result as PromiseFulfilledResult<typeof crowdLevelPromises[0]>).value);
 
   // Create a map of item ID to crowd level prediction
   const crowdLevelMap = new Map(
@@ -423,7 +466,7 @@ export default async function ItineraryPage({
             )}
 
             {/* Overview Map */}
-            {mapUrl && (
+            {mapUrl ? (
               <div className="mt-6">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-lg font-semibold text-forest">
@@ -456,10 +499,38 @@ export default async function ItineraryPage({
                     src={mapUrl}
                     alt={`Map of ${itinerary.destination} showing itinerary locations`}
                     className="w-full h-auto"
+                    onError={(e) => {
+                      console.error('Error loading map image:', e);
+                      // Hide map on error
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement;
+                      if (parent) {
+                        parent.innerHTML = `
+                          <div class="p-8 text-center text-forest/60">
+                            <p>Map could not be loaded. <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(itinerary.destination)}" target="_blank" class="text-sky hover:underline">Open in Google Maps</a></p>
+                          </div>
+                        `;
+                      }
+                    }}
                   />
                 </div>
                 <p className="text-sm text-forest/60 mt-2">
                   Map showing key locations from your itinerary. Click "Open in Google Maps" for an interactive view.
+                </p>
+              </div>
+            ) : itinerary.items.some(item => item.location) && (
+              <div className="mt-6 p-4 bg-sage-light/30 rounded-lg border border-sage/20">
+                <p className="text-sm text-forest/70">
+                  Map preview unavailable.{' '}
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(itinerary.destination)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sky hover:underline"
+                  >
+                    Open {itinerary.destination} in Google Maps
+                  </a>
                 </p>
               </div>
             )}
