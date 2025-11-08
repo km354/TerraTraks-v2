@@ -5,6 +5,8 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { ActivityIcon } from '@/components/ActivityIcon';
 import { generateItineraryMap, generateLocationMap } from '@/lib/google-maps';
+import { predictCrowdLevel } from '@/lib/crowd-level';
+import { CrowdLevelBadge } from '@/components/CrowdLevelBadge';
 
 /**
  * Itinerary Detail Page
@@ -44,6 +46,7 @@ export default async function ItineraryPage({
         select: {
           id: true,
           name: true,
+          subscriptionStatus: true,
         },
       },
     },
@@ -186,6 +189,50 @@ export default async function ItineraryPage({
       })
   );
 
+  // Predict crowd levels for items with locations and dates
+  const isPremium = itinerary.user.subscriptionStatus === 'active';
+  const crowdLevels = await Promise.all(
+    itinerary.items
+      .filter((item) => item.location && item.date)
+      .map(async (item) => {
+        const date = new Date(item.date!);
+        const prediction = await predictCrowdLevel(
+          item.location!,
+          date,
+          isPremium // Premium users get AI predictions
+        );
+        return {
+          itemId: item.id,
+          prediction,
+        };
+      })
+  );
+
+  // Create a map of item ID to crowd level prediction
+  const crowdLevelMap = new Map(
+    crowdLevels.map((cl) => [cl.itemId, cl.prediction])
+  );
+
+  // Calculate overall trip crowd level (average of all predictions)
+  const overallCrowdLevel: 'low' | 'moderate' | 'high' | 'very_high' | null = crowdLevels.length > 0
+    ? (() => {
+        const levelValues: Record<'low' | 'moderate' | 'high' | 'very_high', number> = { 
+          low: 1, 
+          moderate: 2, 
+          high: 3, 
+          very_high: 4 
+        };
+        const averageLevel =
+          crowdLevels.reduce((sum, cl) => sum + levelValues[cl.prediction.level], 0) /
+          crowdLevels.length;
+        
+        if (averageLevel >= 3.5) return 'very_high' as const;
+        if (averageLevel >= 2.5) return 'high' as const;
+        if (averageLevel >= 1.5) return 'moderate' as const;
+        return 'low' as const;
+      })()
+    : null;
+
   // Category color mapping
   const getCategoryColor = (category: string | null) => {
     switch (category?.toLowerCase()) {
@@ -280,56 +327,78 @@ export default async function ItineraryPage({
               </Link>
             </div>
 
-            {/* Overview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-sage-light/30 rounded-lg p-4 border border-sage/20">
-                <div className="flex items-center mb-2">
-                  <div className="bg-sage-light rounded-full p-2 mr-3">
-                    <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="text-sm text-forest/60">Activities</p>
-                    <p className="text-xl font-bold text-forest">{itinerary.items.length}</p>
-                  </div>
-                </div>
-              </div>
-
-              {totalExpenses > 0 && (
-                <div className="bg-sky-light/30 rounded-lg p-4 border border-sky/20">
-                  <div className="flex items-center mb-2">
-                    <div className="bg-sky-light rounded-full p-2 mr-3">
-                      <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-sm text-forest/60">Total Budget</p>
-                      <p className="text-xl font-bold text-forest">
-                        ${totalExpenses.toFixed(2)}
-                      </p>
+                {/* Overview Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-sage-light/30 rounded-lg p-4 border border-sage/20">
+                    <div className="flex items-center mb-2">
+                      <div className="bg-sage-light rounded-full p-2 mr-3">
+                        <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm text-forest/60">Activities</p>
+                        <p className="text-xl font-bold text-forest">{itinerary.items.length}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
 
-              <div className="bg-sand/30 rounded-lg p-4 border border-sand/20">
-                <div className="flex items-center mb-2">
-                  <div className="bg-sand rounded-full p-2 mr-3">
-                    <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
+                  {totalExpenses > 0 && (
+                    <div className="bg-sky-light/30 rounded-lg p-4 border border-sky/20">
+                      <div className="flex items-center mb-2">
+                        <div className="bg-sky-light rounded-full p-2 mr-3">
+                          <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-sm text-forest/60">Total Budget</p>
+                          <p className="text-xl font-bold text-forest">
+                            ${totalExpenses.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-sand/30 rounded-lg p-4 border border-sand/20">
+                    <div className="flex items-center mb-2">
+                      <div className="bg-sand rounded-full p-2 mr-3">
+                        <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm text-forest/60">Duration</p>
+                        <p className="text-xl font-bold text-forest">
+                          {tripDuration > 0 ? `${tripDuration} ${tripDuration === 1 ? 'day' : 'days'}` : 'N/A'}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm text-forest/60">Duration</p>
-                    <p className="text-xl font-bold text-forest">
-                      {tripDuration > 0 ? `${tripDuration} ${tripDuration === 1 ? 'day' : 'days'}` : 'N/A'}
-                    </p>
-                  </div>
+
+                  {overallCrowdLevel && (
+                    <div className="bg-sage-light/30 rounded-lg p-4 border border-sage/20">
+                      <div className="flex items-center mb-2">
+                        <div className="bg-sage-light rounded-full p-2 mr-3">
+                          <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-sm text-forest/60">Expected Crowds</p>
+                          <div className="mt-1">
+                            <CrowdLevelBadge
+                              level={overallCrowdLevel}
+                              size="sm"
+                              showIcon={true}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
 
             {itinerary.description && (
               <div className="mt-4 p-4 bg-sage-light/30 rounded-lg border border-sage/20">
@@ -528,14 +597,25 @@ export default async function ItineraryPage({
                                   )}
                                 </div>
 
-                                {item.description && (
-                                  <p className="text-forest/70 mt-2 leading-relaxed whitespace-pre-wrap">
-                                    {item.description}
-                                  </p>
-                                )}
+                              {item.description && (
+                                <p className="text-forest/70 mt-2 leading-relaxed whitespace-pre-wrap">
+                                  {item.description}
+                                </p>
+                              )}
 
-                                {/* Metadata */}
-                                <div className="flex flex-wrap gap-4 mt-4 text-sm text-forest/60">
+                              {/* Crowd Level Prediction */}
+                              {item.location && item.date && crowdLevelMap.has(item.id) && (
+                                <div className="mt-3">
+                                  <CrowdLevelBadge
+                                    level={crowdLevelMap.get(item.id)!.level}
+                                    reasoning={crowdLevelMap.get(item.id)!.reasoning}
+                                    size="sm"
+                                  />
+                                </div>
+                              )}
+
+                              {/* Metadata */}
+                              <div className="flex flex-wrap gap-4 mt-4 text-sm text-forest/60">
                                   {item.location && (
                                     <div className="flex items-center gap-2">
                                       <svg
