@@ -1,39 +1,9 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 
-/**
- * Landing Page
- * 
- * Marketing homepage for TerraTraks - AI-powered trip planning
- * Optimized for performance and conversion
- * Statically generated for maximum performance
- */
 export const metadata: Metadata = {
   title: 'TerraTraks - Plan Your National Park Adventure with AI',
   description: 'Create personalized travel itineraries, predict crowd levels, generate packing lists, and track expenses. AI-powered trip planning for national parks and outdoor adventures.',
-  keywords: ['travel planning', 'AI itinerary', 'national parks', 'trip planner', 'travel app', 'adventure planning', 'itinerary generator'],
-  openGraph: {
-    title: 'TerraTraks - AI-Powered National Park Trip Planning',
-    description: 'Plan your perfect national park adventure with AI-powered itineraries, crowd predictions, and smart packing lists.',
-    type: 'website',
-    siteName: 'TerraTraks',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'TerraTraks - AI-Powered Trip Planning',
-    description: 'Plan your perfect national park adventure with AI-powered itineraries.',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
 };
 
 export default function Home() {
@@ -41,7 +11,6 @@ export default function Home() {
     <main className="min-h-screen bg-offwhite">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-forest via-forest-light to-sage text-offwhite overflow-hidden">
-        {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
@@ -50,7 +19,6 @@ export default function Home() {
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="text-center">
-            {/* Badge */}
             <div className="inline-flex items-center px-4 py-2 mb-8 bg-offwhite/10 backdrop-blur-sm rounded-full border border-offwhite/20">
               <span className="text-sm font-medium text-offwhite">🌲 AI-Powered National Park Planning</span>
             </div>
@@ -82,7 +50,6 @@ export default function Home() {
               </Link>
             </div>
             
-            {/* Trust Indicators */}
             <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-sage-light">
               <div className="flex items-center gap-2">
                 <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
@@ -120,7 +87,6 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1: AI Itinerary Generation */}
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all border border-sage/10">
               <div className="bg-gradient-to-br from-sage-light to-sage rounded-full w-16 h-16 flex items-center justify-center mb-6">
                 <svg className="h-8 w-8 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,7 +101,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Feature 2: Crowd Level Prediction */}
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all border border-sage/10">
               <div className="bg-gradient-to-br from-sky-light to-sky rounded-full w-16 h-16 flex items-center justify-center mb-6">
                 <svg className="h-8 w-8 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,7 +115,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Feature 3: Packing List Generator */}
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all border border-sage/10">
               <div className="bg-gradient-to-br from-sand to-sage-light rounded-full w-16 h-16 flex items-center justify-center mb-6">
                 <svg className="h-8 w-8 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,7 +129,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Feature 4: Budget & Expense Tracking */}
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all border border-sage/10">
               <div className="bg-gradient-to-br from-sky to-sky-light rounded-full w-16 h-16 flex items-center justify-center mb-6">
                 <svg className="h-8 w-8 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,7 +143,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Feature 5: Interactive Maps */}
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all border border-sage/10">
               <div className="bg-gradient-to-br from-sage to-forest rounded-full w-16 h-16 flex items-center justify-center mb-6">
                 <svg className="h-8 w-8 text-offwhite" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -195,7 +157,6 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Feature 6: Preset Itineraries */}
             <div className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all border border-sage/10">
               <div className="bg-gradient-to-br from-forest to-sage rounded-full w-16 h-16 flex items-center justify-center mb-6">
                 <svg className="h-8 w-8 text-offwhite" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -290,11 +251,10 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Testimonial 1 */}
             <div className="bg-sage-light/30 rounded-2xl p-8 border border-sage/20">
               <div className="flex items-center mb-4">
                 <div className="flex text-sage">
-                  {[...Array(5)].map((_, i) => (
+                  {[1, 2, 3, 4, 5].map((i) => (
                     <svg key={i} className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
@@ -315,11 +275,10 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Testimonial 2 */}
             <div className="bg-sky-light/30 rounded-2xl p-8 border border-sky/20">
               <div className="flex items-center mb-4">
                 <div className="flex text-sage">
-                  {[...Array(5)].map((_, i) => (
+                  {[1, 2, 3, 4, 5].map((i) => (
                     <svg key={i} className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
@@ -340,11 +299,10 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Testimonial 3 */}
             <div className="bg-sand/30 rounded-2xl p-8 border border-sand/20">
               <div className="flex items-center mb-4">
                 <div className="flex text-sage">
-                  {[...Array(5)].map((_, i) => (
+                  {[1, 2, 3, 4, 5].map((i) => (
                     <svg key={i} className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
