@@ -346,7 +346,6 @@ export default async function ItineraryPage({
                     </div>
                   </div>
 
-
                   <div className="bg-sand/30 rounded-lg p-4 border border-sand/20">
                     <div className="flex items-center mb-2">
                       <div className="bg-sand rounded-full p-2 mr-3">
@@ -384,6 +383,28 @@ export default async function ItineraryPage({
                       </div>
                     </div>
                   )}
+
+                  {/* Budget Card */}
+                  <div className="bg-sky-light/30 rounded-lg p-4 border border-sky/20">
+                    <div className="flex items-center mb-2">
+                      <div className="bg-sky-light rounded-full p-2 mr-3">
+                        <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-forest/60 mb-1">Budget</p>
+                        <BudgetEditor
+                          itineraryId={itinerary.id}
+                          currentBudget={itinerary.budget ? Number(itinerary.budget) : null}
+                          currentCurrency={itinerary.budgetCurrency || 'USD'}
+                          onSuccess={() => {
+                            // Refresh handled by component
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
             {itinerary.description && (
