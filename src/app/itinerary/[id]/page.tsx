@@ -1,15 +1,24 @@
 import Link from 'next/link';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 
 /**
  * Itinerary Detail Page
  * 
  * Displays a saved itinerary with details
  */
-export default function ItineraryPage({
+export default async function ItineraryPage({
   params,
 }: {
   params: { id: string };
 }) {
+  const session = await auth();
+
+  // Redirect to sign in if not authenticated
+  if (!session?.user) {
+    redirect(`/auth/signin?callbackUrl=/itinerary/${params.id}`);
+  }
+
   // This is a placeholder - in the future, this will fetch the itinerary from the database
   const itineraryId = params.id;
 

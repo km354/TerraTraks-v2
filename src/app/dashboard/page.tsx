@@ -1,12 +1,21 @@
 import Link from 'next/link';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 
 /**
  * Dashboard Page
  * 
  * For logged-in users to see their itineraries and profile
  */
-export default function DashboardPage() {
-  // This is a placeholder - in the future, this will fetch user data and itineraries from the database
+export default async function DashboardPage() {
+  const session = await auth();
+
+  // Redirect to sign in if not authenticated
+  if (!session?.user) {
+    redirect('/auth/signin?callbackUrl=/dashboard');
+  }
+
+  const user = session.user;
 
   return (
     <main className="min-h-screen bg-offwhite py-12">
@@ -25,16 +34,24 @@ export default function DashboardPage() {
           <div className="bg-white shadow-lg rounded-2xl p-8 mb-10">
             <div className="flex items-center justify-between flex-wrap gap-6">
               <div className="flex items-center">
-                <div className="h-20 w-20 bg-sage-light rounded-full flex items-center justify-center">
-                  <span className="text-3xl font-semibold text-forest">
-                    JD
-                  </span>
-                </div>
-                <div className="ml-6">
+                {user.image ? (
+                  <img
+                    src={user.image}
+                    alt={user.name || 'User'}
+                    className="h-20 w-20 rounded-full mr-6"
+                  />
+                ) : (
+                  <div className="h-20 w-20 bg-sage-light rounded-full flex items-center justify-center mr-6">
+                    <span className="text-3xl font-semibold text-forest">
+                      {user.name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
+                    </span>
+                  </div>
+                )}
+                <div>
                   <h2 className="text-2xl font-semibold text-forest">
-                    John Doe
+                    {user.name || 'User'}
                   </h2>
-                  <p className="text-forest/70 mt-1">demo@terratraks.com</p>
+                  <p className="text-forest/70 mt-1">{user.email}</p>
                   <span className="inline-block mt-3 px-4 py-1.5 text-sm font-medium bg-sage-light text-forest rounded-full">
                     Free Plan
                   </span>

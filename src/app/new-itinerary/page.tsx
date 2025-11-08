@@ -1,9 +1,19 @@
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
+
 /**
  * New Itinerary Page
  * 
  * Form for creating a new trip itinerary
  */
-export default function NewItineraryPage() {
+export default async function NewItineraryPage() {
+  const session = await auth();
+
+  // Redirect to sign in if not authenticated
+  if (!session?.user) {
+    redirect('/auth/signin?callbackUrl=/new-itinerary');
+  }
+
   return (
     <main className="min-h-screen bg-offwhite py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

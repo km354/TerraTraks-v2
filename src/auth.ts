@@ -1,14 +1,17 @@
 /**
  * NextAuth Configuration for App Router
  * 
- * This file configures NextAuth v5 for use with the App Router
+ * This file configures NextAuth v5 for use with the App Router and Prisma
  */
 
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "./lib/prisma";
 import { googleOAuth, auth } from "./lib/env";
 
-export const { handlers, signIn, signOut, auth: getServerSession } = NextAuth({
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  adapter: PrismaAdapter(prisma) as any,
   providers: [
     Google({
       clientId: googleOAuth.clientId || process.env.GOOGLE_CLIENT_ID || "",
@@ -16,20 +19,13 @@ export const { handlers, signIn, signOut, auth: getServerSession } = NextAuth({
     }),
   ],
   secret: auth.secret || process.env.AUTH_SECRET,
+  session: {
+    strategy: "database",
+  },
   callbacks: {
-    async jwt({ token, user, account }) {
-      if (account && user) {
-        token.accessToken = account.access_token;
-        token.id = user.id;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user && token.id) {
-        session.user.id = token.id as string;
-      }
-      if (token.accessToken) {
-        (session as any).accessToken = token.accessToken;
+    async session({ session, user }) {
+      if (session.user && user) {
+        session.user.id = user.id;
       }
       return session;
     },

@@ -9,15 +9,31 @@ import { NextResponse } from "next/server";
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
+  const isAuthenticated = !!req.auth;
 
-  // Allow public access to auth routes
-  if (pathname.startsWith("/api/auth") || pathname.startsWith("/auth")) {
+  // Public routes - allow access without authentication
+  const publicRoutes = ["/", "/pricing", "/auth/signin", "/auth/error"];
+  const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith("/api/auth");
+
+  // Protected routes - require authentication
+  const protectedRoutes = ["/dashboard", "/new-itinerary", "/itinerary"];
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+
+  // Allow public routes and auth routes
+  if (isPublicRoute) {
     return NextResponse.next();
+  }
+
+  // Protect routes that require authentication
+  if (isProtectedRoute && !isAuthenticated) {
+    const signInUrl = new URL("/auth/signin", req.url);
+    signInUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(signInUrl);
   }
 
   // Protect API routes (except auth)
   if (pathname.startsWith("/api") && !pathname.startsWith("/api/auth")) {
-    if (!req.auth) {
+    if (!isAuthenticated) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
