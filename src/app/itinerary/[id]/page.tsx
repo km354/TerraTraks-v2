@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { ActivityIcon } from '@/components/ActivityIcon';
+import { generateItineraryMap, generateLocationMap } from '@/lib/google-maps';
 
 /**
  * Itinerary Detail Page
@@ -139,6 +140,51 @@ export default async function ItineraryPage({
   const totalExpenses = itinerary.expenses.reduce((sum, expense) => {
     return sum + Number(expense.amount);
   }, 0);
+
+  // Collect unique locations for map
+  const locations = itinerary.items
+    .filter((item) => item.location)
+    .map((item) => ({
+      location: item.location!,
+      title: item.title,
+    }));
+
+  // Generate map URL
+  const mapUrl = await generateItineraryMap(itinerary.destination, locations, {
+    size: '800x500',
+    showRoute: locations.length > 1,
+  });
+
+  // Generate per-day maps
+  const dayMaps = await Promise.all(
+    itemsByDate
+      .filter((day) => day.dayNumber > 0)
+      .map(async (day) => {
+        const dayLocations = day.items
+          .filter((item) => item.location)
+          .map((item) => ({
+            location: item.location!,
+            title: item.title,
+          }));
+
+        if (dayLocations.length === 0) return null;
+
+        const dayMapUrl = await generateItineraryMap(
+          itinerary.destination,
+          dayLocations,
+          {
+            size: '600x400',
+            zoom: 12,
+            showRoute: dayLocations.length > 1,
+          }
+        );
+
+        return {
+          dayNumber: day.dayNumber,
+          mapUrl: dayMapUrl,
+        };
+      })
+  );
 
   // Category color mapping
   const getCategoryColor = (category: string | null) => {
@@ -292,6 +338,25 @@ export default async function ItineraryPage({
                 </p>
               </div>
             )}
+
+            {/* Overview Map */}
+            {mapUrl && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-forest mb-3">
+                  Trip Overview Map
+                </h3>
+                <div className="rounded-lg overflow-hidden border-2 border-sage/20 shadow-md">
+                  <img
+                    src={mapUrl}
+                    alt={`Map of ${itinerary.destination} showing itinerary locations`}
+                    className="w-full h-auto"
+                  />
+                </div>
+                <p className="text-sm text-forest/60 mt-2">
+                  Map showing key locations from your itinerary
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Itinerary Items */}
@@ -353,107 +418,133 @@ export default async function ItineraryPage({
                       </div>
                     </div>
 
+                    {/* Day Map */}
+                    {dayData.dayNumber > 0 && (() => {
+                      const dayMap = dayMaps.find((m) => m?.dayNumber === dayData.dayNumber);
+                      const dayLocations = dayData.items.filter((item) => item.location);
+                      
+                      if (dayMap?.mapUrl && dayLocations.length > 0) {
+                        return (
+                          <div className="mb-6 ml-16">
+                            <div className="rounded-lg overflow-hidden border-2 border-sage/20 shadow-md">
+                              <img
+                                src={dayMap.mapUrl}
+                                alt={`Map for Day ${dayData.dayNumber}`}
+                                className="w-full h-auto"
+                              />
+                            </div>
+                            <p className="text-xs text-forest/60 mt-1">
+                              Locations for Day {dayData.dayNumber}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+
                     {/* Activities */}
                     <div className="ml-16 space-y-4">
-                      {dayData.items.map((item, index) => (
-                        <div
-                          key={item.id}
-                          className="bg-sage-light/20 rounded-xl p-6 border-2 border-transparent hover:border-sage/30 transition-all group"
-                        >
-                          <div className="flex items-start gap-4">
-                            {/* Activity Icon */}
-                            <div className="flex-shrink-0 mt-1">
-                              <div className={`rounded-lg p-3 ${getCategoryColor(item.category)}`}>
-                                <ActivityIcon
-                                  category={item.category}
-                                  title={item.title}
-                                  className="h-6 w-6 text-forest"
-                                />
-                              </div>
-                            </div>
-
-                            {/* Activity Content */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-4 mb-2">
-                                <h4 className="font-semibold text-forest text-lg group-hover:text-forest-light transition-colors">
-                                  {item.title}
-                                </h4>
-                                {item.category && (
-                                  <span
-                                    className={`px-3 py-1 text-xs font-medium ${getCategoryColor(
-                                      item.category
-                                    )} text-forest rounded-full flex-shrink-0 capitalize`}
-                                  >
-                                    {item.category}
-                                  </span>
-                                )}
+                      {dayData.items.map((item, index) => {
+                        return (
+                          <div
+                            key={item.id}
+                            className="bg-sage-light/20 rounded-xl p-6 border-2 border-transparent hover:border-sage/30 transition-all group"
+                          >
+                            <div className="flex items-start gap-4">
+                              {/* Activity Icon */}
+                              <div className="flex-shrink-0 mt-1">
+                                <div className={`rounded-lg p-3 ${getCategoryColor(item.category)}`}>
+                                  <ActivityIcon
+                                    category={item.category}
+                                    title={item.title}
+                                    className="h-6 w-6 text-forest"
+                                  />
+                                </div>
                               </div>
 
-                              {item.description && (
-                                <p className="text-forest/70 mt-2 leading-relaxed whitespace-pre-wrap">
-                                  {item.description}
-                                </p>
-                              )}
+                              {/* Activity Content */}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-4 mb-2">
+                                  <h4 className="font-semibold text-forest text-lg group-hover:text-forest-light transition-colors">
+                                    {item.title}
+                                  </h4>
+                                  {item.category && (
+                                    <span
+                                      className={`px-3 py-1 text-xs font-medium ${getCategoryColor(
+                                        item.category
+                                      )} text-forest rounded-full flex-shrink-0 capitalize`}
+                                    >
+                                      {item.category}
+                                    </span>
+                                  )}
+                                </div>
 
-                              {/* Metadata */}
-                              <div className="flex flex-wrap gap-4 mt-4 text-sm text-forest/60">
-                                {item.location && (
-                                  <div className="flex items-center">
-                                    <svg
-                                      className="h-4 w-4 mr-1.5"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                      />
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                      />
-                                    </svg>
-                                    <span className="font-medium">{item.location}</span>
-                                  </div>
+                                {item.description && (
+                                  <p className="text-forest/70 mt-2 leading-relaxed whitespace-pre-wrap">
+                                    {item.description}
+                                  </p>
                                 )}
-                                {item.startTime && (
-                                  <div className="flex items-center">
-                                    <svg
-                                      className="h-4 w-4 mr-1.5"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      viewBox="0 0 24 24"
-                                    >
-                                      <path
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        strokeWidth={2}
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                      />
-                                    </svg>
-                                    <span className="font-medium">
-                                      {new Date(item.startTime).toLocaleTimeString('en-US', {
-                                        hour: 'numeric',
-                                        minute: '2-digit',
-                                      })}
-                                      {item.endTime &&
-                                        ` - ${new Date(item.endTime).toLocaleTimeString('en-US', {
+
+                                {/* Metadata */}
+                                <div className="flex flex-wrap gap-4 mt-4 text-sm text-forest/60">
+                                  {item.location && (
+                                    <div className="flex items-center">
+                                      <svg
+                                        className="h-4 w-4 mr-1.5"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                        />
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                        />
+                                      </svg>
+                                      <span className="font-medium">{item.location}</span>
+                                    </div>
+                                  )}
+                                  {item.startTime && (
+                                    <div className="flex items-center">
+                                      <svg
+                                        className="h-4 w-4 mr-1.5"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                        />
+                                      </svg>
+                                      <span className="font-medium">
+                                        {new Date(item.startTime).toLocaleTimeString('en-US', {
                                           hour: 'numeric',
                                           minute: '2-digit',
-                                        })}`}
-                                    </span>
-                                  </div>
-                                )}
+                                        })}
+                                        {item.endTime &&
+                                          ` - ${new Date(item.endTime).toLocaleTimeString('en-US', {
+                                            hour: 'numeric',
+                                            minute: '2-digit',
+                                          })}`}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* Day Separator */}

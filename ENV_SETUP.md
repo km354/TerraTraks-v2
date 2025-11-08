@@ -32,17 +32,25 @@ This guide explains how to set up all required API keys and environment variable
 ---
 
 ### 3. Google Maps Static API Key
-**Purpose**: Displaying map images
+**Purpose**: Displaying map images and geocoding locations
 
 **How to get it**:
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new project or select existing one
-3. Enable "Maps Static API"
+3. Enable the following APIs:
+   - **Maps Static API** (required for map images)
+   - **Geocoding API** (required for route visualization - optional but recommended)
 4. Go to "Credentials" → "Create Credentials" → "API Key"
 5. Copy the API key
-6. (Recommended) Restrict the key to Maps Static API only
+6. (Recommended) Restrict the key to:
+   - Maps Static API
+   - Geocoding API (if enabled)
 
-**Cost**: Free tier available (28,000 requests/month)
+**Note**: Geocoding API is optional but recommended for better route visualization. If not enabled, maps will still work but won't show route paths between locations.
+
+**Cost**: 
+- Maps Static API: Free tier available (28,000 requests/month)
+- Geocoding API: Free tier available (40,000 requests/month)
 
 ---
 
