@@ -88,6 +88,8 @@ model Itinerary {
   description String?
   startDate   DateTime? @map("start_date")
   endDate     DateTime? @map("end_date")
+  budget      Decimal?  @db.Decimal(10, 2) // Target budget for the trip
+  budgetCurrency String? @default("USD") @map("budget_currency")
   isPublic    Boolean  @default(false) @map("is_public")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")

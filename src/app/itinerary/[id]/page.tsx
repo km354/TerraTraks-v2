@@ -8,6 +8,8 @@ import { generateItineraryMap, generateLocationMap } from '@/lib/google-maps';
 import { predictCrowdLevel } from '@/lib/crowd-level';
 import { CrowdLevelBadge } from '@/components/CrowdLevelBadge';
 import { PackingList } from '@/components/PackingList';
+import { ExpenseList } from '@/components/ExpenseList';
+import { BudgetEditor } from '@/components/BudgetEditor';
 
 /**
  * Itinerary Detail Page
@@ -344,23 +346,6 @@ export default async function ItineraryPage({
                     </div>
                   </div>
 
-                  {totalExpenses > 0 && (
-                    <div className="bg-sky-light/30 rounded-lg p-4 border border-sky/20">
-                      <div className="flex items-center mb-2">
-                        <div className="bg-sky-light rounded-full p-2 mr-3">
-                          <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-sm text-forest/60">Total Budget</p>
-                          <p className="text-xl font-bold text-forest">
-                            ${totalExpenses.toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   <div className="bg-sand/30 rounded-lg p-4 border border-sand/20">
                     <div className="flex items-center mb-2">
@@ -727,74 +712,24 @@ export default async function ItineraryPage({
             </div>
           )}
 
-          {/* Expenses */}
-          {itinerary.expenses.length > 0 && (
-            <div className="bg-white shadow-lg rounded-2xl p-8">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-3xl font-bold text-forest">
-                  Expenses
-                </h2>
-                <div className="text-right">
-                  <p className="text-sm text-forest/60">Total Budget</p>
-                  <p className="text-2xl font-bold text-forest">
-                    ${totalExpenses.toFixed(2)}
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {itinerary.expenses.map((expense) => (
-                  <div
-                    key={expense.id}
-                    className="flex justify-between items-center p-5 bg-sage-light/20 rounded-lg border border-sage/20 hover:bg-sage-light/30 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="bg-sky-light rounded-lg p-2">
-                        <svg
-                          className="h-5 w-5 text-forest"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-forest">
-                          {expense.title}
-                        </h4>
-                        {expense.description && (
-                          <p className="text-sm text-forest/70 mt-1">
-                            {expense.description}
-                          </p>
-                        )}
-                        {expense.category && (
-                          <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-sage-light text-forest rounded-full">
-                            {expense.category}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <span className="text-xl font-bold text-forest">
-                      ${Number(expense.amount).toFixed(2)} {expense.currency}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <div className="border-t-2 border-forest/20 pt-6 mt-6">
-                <div className="flex justify-between items-center">
-                  <span className="text-2xl font-bold text-forest">Total</span>
-                  <span className="text-3xl font-bold text-forest">
-                    ${totalExpenses.toFixed(2)} {itinerary.expenses[0]?.currency || 'USD'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Budget & Expenses */}
+          <ExpenseList
+            itineraryId={itinerary.id}
+            expenses={itinerary.expenses.map((exp) => ({
+              id: exp.id,
+              title: exp.title,
+              description: exp.description,
+              amount: Number(exp.amount),
+              currency: exp.currency,
+              category: exp.category,
+              date: exp.date,
+            }))}
+            budget={itinerary.budget ? Number(itinerary.budget) : null}
+            budgetCurrency={itinerary.budgetCurrency || 'USD'}
+            onRefresh={() => {
+              // Refresh handled by component
+            }}
+          />
         </div>
       </main>
   );
