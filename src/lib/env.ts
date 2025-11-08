@@ -60,6 +60,7 @@ export const stripe = {
   publishableKey: getEnvVar('STRIPE_PUBLISHABLE_KEY'),
   publicPublishableKey: getEnvVar('NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY'),
   webhookSecret: getEnvVar('STRIPE_WEBHOOK_SECRET'),
+  premiumPriceId: getEnvVar('STRIPE_PREMIUM_PRICE_ID'),
 };
 
 /**
@@ -110,6 +111,8 @@ export function validateEnv(): void {
     'STRIPE_SECRET_KEY',
     'STRIPE_PUBLISHABLE_KEY',
     'NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY',
+    'STRIPE_PREMIUM_PRICE_ID',
+    'STRIPE_WEBHOOK_SECRET',
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     'DATABASE_URL',

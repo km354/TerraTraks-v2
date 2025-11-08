@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { BillingPortalButton } from '@/components/BillingPortalButton';
+import { app } from '@/lib/env';
 
 /**
  * Dashboard Page
@@ -109,13 +111,20 @@ export default async function DashboardPage() {
                 </div>
               </div>
               <div className="flex space-x-4">
-                {!isPremium && (
+                {!isPremium ? (
                   <Link
                     href="/pricing"
                     className="px-6 py-3 border-2 border-forest text-forest rounded-lg hover:bg-forest hover:text-offwhite transition-all font-medium"
                   >
                     Upgrade to Premium
                   </Link>
+                ) : (
+                  <BillingPortalButton
+                    className="px-6 py-3 border-2 border-forest text-forest rounded-lg hover:bg-forest hover:text-offwhite transition-all font-medium"
+                    returnUrl={`${app.url}/dashboard`}
+                  >
+                    Manage Subscription
+                  </BillingPortalButton>
                 )}
                 <button className="px-6 py-3 border-2 border-sage/50 text-forest rounded-lg hover:bg-sage/10 transition-colors font-medium">
                   Edit Profile

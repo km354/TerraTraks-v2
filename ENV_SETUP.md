@@ -64,20 +64,62 @@ This guide explains how to set up all required API keys and environment variable
 
 ---
 
-### 5. Stripe API Keys
-**Purpose**: Payment processing
+### 5. Stripe API Keys and Product Setup
+**Purpose**: Payment processing for premium subscriptions
 
 **How to get them**:
+
+#### Step 1: Get API Keys
 1. Go to [Stripe Dashboard](https://dashboard.stripe.com/apikeys)
 2. Sign in or create an account
 3. Toggle to "Test mode" for development
 4. Copy:
    - **Publishable key** (starts with `pk_test_` or `pk_live_`)
    - **Secret key** (starts with `sk_test_` or `sk_live_`)
-5. For webhooks: Go to "Developers" → "Webhooks" → "Add endpoint"
-   - Copy the webhook signing secret
+
+#### Step 2: Create Premium Product and Price
+1. In Stripe Dashboard, go to "Products" → "Add product"
+2. Fill in product details:
+   - **Name**: TerraTraks Premium
+   - **Description**: Premium subscription with unlimited itineraries and advanced features
+3. Add a price:
+   - **Pricing model**: Standard pricing
+   - **Price**: $7.99 USD (or your desired amount)
+   - **Billing period**: Monthly (recurring)
+   - **Currency**: USD
+4. Click "Save product"
+5. **Important**: Copy the **Price ID** (starts with `price_`) - you'll need this for `STRIPE_PREMIUM_PRICE_ID`
+
+#### Step 3: Set Up Webhooks
+1. Go to "Developers" → "Webhooks" → "Add endpoint"
+2. Endpoint URL:
+   - **Development**: Use Stripe CLI (see below) or `http://localhost:3000/api/stripe/webhook`
+   - **Production**: `https://yourdomain.com/api/stripe/webhook`
+3. Select events to listen to:
+   - `checkout.session.completed`
+   - `customer.subscription.created`
+   - `customer.subscription.updated`
+   - `customer.subscription.deleted`
+   - `invoice.payment_succeeded`
+   - `invoice.payment_failed`
+4. Click "Add endpoint"
+5. Copy the **Signing secret** (starts with `whsec_`) - you'll need this for `STRIPE_WEBHOOK_SECRET`
+
+#### Step 4: Enable Billing Portal (Optional but Recommended)
+1. Go to "Settings" → "Billing" → "Customer portal"
+2. Enable "Customer portal"
+3. Configure portal settings (allow customers to cancel, update payment methods, etc.)
+4. Save changes
 
 **Cost**: 2.9% + $0.30 per successful charge
+
+**Testing with Stripe CLI** (Development):
+```bash
+# Install Stripe CLI: https://stripe.com/docs/stripe-cli
+stripe login
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+# This will output a webhook signing secret - use this for STRIPE_WEBHOOK_SECRET in development
+```
 
 ---
 
@@ -175,7 +217,8 @@ Add each variable with its corresponding value:
 | `STRIPE_SECRET_KEY` | Your Stripe Secret Key | Production, Preview, Development |
 | `STRIPE_PUBLISHABLE_KEY` | Your Stripe Publishable Key | Production, Preview, Development |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Your Stripe Publishable Key | Production, Preview, Development |
-| `STRIPE_WEBHOOK_SECRET` | Your Stripe Webhook Secret | Production, Preview |
+| `STRIPE_PREMIUM_PRICE_ID` | Your Stripe Price ID (starts with `price_`) | Production, Preview, Development |
+| `STRIPE_WEBHOOK_SECRET` | Your Stripe Webhook Signing Secret | Production, Preview, Development |
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase Project URL | Production, Preview, Development |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase Anon Key | Production, Preview, Development |
 | `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase Service Role Key | Production, Preview |

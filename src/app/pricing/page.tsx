@@ -1,14 +1,40 @@
 import Link from 'next/link';
+import { CheckoutButton } from '@/components/CheckoutButton';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 
 /**
  * Pricing Page
  * 
  * Shows free vs premium plan details
  */
-export default function PricingPage() {
+interface PricingPageProps {
+  searchParams: Promise<{ success?: string; canceled?: string }>;
+}
+
+export default async function PricingPage({ searchParams }: PricingPageProps) {
+  const session = await auth();
+  const params = await searchParams;
+  const showSuccess = params.success === 'true';
+  const showCanceled = params.canceled === 'true';
+
   return (
     <main className="min-h-screen bg-offwhite py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Success/Error Messages */}
+          {showSuccess && (
+            <div className="mb-8 max-w-2xl mx-auto bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg">
+              <p className="font-semibold">🎉 Welcome to Premium!</p>
+              <p className="mt-1">Your subscription is now active. Enjoy unlimited itineraries and premium features!</p>
+            </div>
+          )}
+          {showCanceled && (
+            <div className="mb-8 max-w-2xl mx-auto bg-yellow-50 border border-yellow-200 text-yellow-800 px-6 py-4 rounded-lg">
+              <p className="font-semibold">Checkout Canceled</p>
+              <p className="mt-1">No worries! You can try again anytime. Your account hasn't been charged.</p>
+            </div>
+          )}
+
           <div className="text-center mb-20">
             <h1 className="text-5xl font-bold text-forest mb-6">
               Choose Your Plan
@@ -120,7 +146,7 @@ export default function PricingPage() {
               <div className="text-center">
                 <h2 className="text-3xl font-bold mb-4">Premium Plan</h2>
                 <div className="mb-8">
-                  <span className="text-5xl font-bold">$9.99</span>
+                  <span className="text-5xl font-bold">$7.99</span>
                   <span className="text-sage-light text-xl">/month</span>
                 </div>
                 <ul className="space-y-5 mb-10 text-left">
@@ -221,12 +247,18 @@ export default function PricingPage() {
                     <span>Priority support</span>
                   </li>
                 </ul>
-                <Link
-                  href="/dashboard"
-                  className="block w-full px-8 py-4 bg-offwhite text-forest rounded-lg text-center font-semibold hover:bg-sage-light transition-all shadow-lg"
-                >
-                  Upgrade to Premium
-                </Link>
+                {session?.user ? (
+                  <CheckoutButton className="block w-full px-8 py-4 bg-offwhite text-forest rounded-lg text-center font-semibold hover:bg-sage-light transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                    Upgrade to Premium
+                  </CheckoutButton>
+                ) : (
+                  <Link
+                    href="/auth/signin?callbackUrl=/pricing"
+                    className="block w-full px-8 py-4 bg-offwhite text-forest rounded-lg text-center font-semibold hover:bg-sage-light transition-all shadow-lg"
+                  >
+                    Sign In to Subscribe
+                  </Link>
+                )}
               </div>
             </div>
           </div>

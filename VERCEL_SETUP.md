@@ -53,37 +53,41 @@ For each variable below, click **Add New** and fill in:
    - Value: Same as STRIPE_PUBLISHABLE_KEY (this is exposed to the client)
    - Environments: ☑ Production ☑ Preview ☑ Development
 
-10. **STRIPE_WEBHOOK_SECRET**
-    - Value: Your Stripe Webhook Secret
-    - Environments: ☑ Production ☑ Preview
+10. **STRIPE_PREMIUM_PRICE_ID**
+    - Value: Your Stripe Price ID (starts with `price_`) - Get this from Stripe Dashboard after creating the premium product
+    - Environments: ☑ Production ☑ Preview ☑ Development
 
-11. **NEXT_PUBLIC_SUPABASE_URL**
+11. **STRIPE_WEBHOOK_SECRET**
+    - Value: Your Stripe Webhook Signing Secret (starts with `whsec_`)
+    - Environments: ☑ Production ☑ Preview ☑ Development
+
+12. **NEXT_PUBLIC_SUPABASE_URL**
     - Value: Your Supabase Project URL
     - Environments: ☑ Production ☑ Preview ☑ Development
 
-12. **NEXT_PUBLIC_SUPABASE_ANON_KEY**
+13. **NEXT_PUBLIC_SUPABASE_ANON_KEY**
     - Value: Your Supabase Anon Key
     - Environments: ☑ Production ☑ Preview ☑ Development
 
-13. **SUPABASE_SERVICE_ROLE_KEY**
+14. **SUPABASE_SERVICE_ROLE_KEY**
     - Value: Your Supabase Service Role Key (optional, for admin operations)
     - Environments: ☑ Production ☑ Preview
 
-14. **DATABASE_URL**
+15. **DATABASE_URL**
     - Value: Your Supabase Database Connection String (postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres)
     - Environments: ☑ Production ☑ Preview ☑ Development
 
-15. **AUTH_SECRET**
+16. **AUTH_SECRET**
     - Value: Generated auth secret (use the same one from .env.local or generate new: `openssl rand -base64 32`)
     - Environments: ☑ Production ☑ Preview ☑ Development
 
-16. **NEXT_PUBLIC_APP_URL**
+17. **NEXT_PUBLIC_APP_URL**
     - Value (Production): `https://yourdomain.vercel.app`
     - Value (Preview): `https://your-preview-url.vercel.app`
     - Value (Development): `http://localhost:3000`
     - Environments: ☑ Production ☑ Preview ☑ Development
 
-17. **NODE_ENV**
+18. **NODE_ENV**
     - Value (Production): `production`
     - Value (Preview/Development): `development`
     - Environments: ☑ Production ☑ Preview ☑ Development
@@ -110,6 +114,7 @@ Use this checklist to ensure you've added everything:
 ☐ STRIPE_SECRET_KEY
 ☐ STRIPE_PUBLISHABLE_KEY
 ☐ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+☐ STRIPE_PREMIUM_PRICE_ID
 ☐ STRIPE_WEBHOOK_SECRET
 ☐ NEXT_PUBLIC_SUPABASE_URL
 ☐ NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -160,7 +165,9 @@ Use this checklist to ensure you've added everything:
 ### Stripe not working?
 - Verify you're using the correct keys for the environment (test vs live)
 - Check that `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` is set (needed for client-side)
+- Ensure `STRIPE_PREMIUM_PRICE_ID` is set correctly (should start with `price_`)
 - Ensure webhook secret matches your Stripe webhook configuration
+- Verify webhook endpoint URL in Stripe Dashboard matches your production URL: `https://yourdomain.com/api/stripe/webhook`
 
 ## 📚 Additional Resources
 
