@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { PackingItem, PackingList as PackingListType } from '@/lib/packing-list';
+import { AffiliateLink } from './AffiliateLink';
+import { getGearAffiliateLink } from '@/lib/affiliates';
 
 interface PackingListProps {
   itineraryId: string;
@@ -257,6 +259,21 @@ export function PackingList({
                       {item.notes && (
                         <p className="text-sm text-forest/70 mt-1 italic">{item.notes}</p>
                       )}
+                      {/* Affiliate link for gear items */}
+                      {(['Gear/Equipment', 'Footwear', 'Electronics'].includes(item.category) && (() => {
+                        const affiliateLink = getGearAffiliateLink(item.name);
+                        return affiliateLink ? (
+                          <div className="mt-2">
+                            <AffiliateLink
+                              url={affiliateLink.url}
+                              label={affiliateLink.label}
+                              provider={affiliateLink.provider}
+                              variant="link"
+                              className="text-xs"
+                            />
+                          </div>
+                        ) : null;
+                      })())}
                     </div>
                   </label>
                 ))}

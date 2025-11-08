@@ -10,6 +10,11 @@ import { CrowdLevelBadge } from '@/components/CrowdLevelBadge';
 import { PackingList } from '@/components/PackingList';
 import { ExpenseList } from '@/components/ExpenseList';
 import { BudgetEditor } from '@/components/BudgetEditor';
+import { AffiliateLink } from '@/components/AffiliateLink';
+import {
+  getAccommodationAffiliateLink,
+  getActivityAffiliateLink,
+} from '@/lib/affiliates';
 
 /**
  * Itinerary Detail Page
@@ -620,6 +625,40 @@ export default async function ItineraryPage({
                                   />
                                 </div>
                               )}
+
+                              {/* Affiliate Links */}
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {item.category?.toLowerCase() === 'accommodation' && item.location && (() => {
+                                  const affiliateLink = getAccommodationAffiliateLink(
+                                    item.location,
+                                    item.date ? new Date(item.date) : undefined,
+                                    item.endTime ? new Date(item.endTime) : undefined
+                                  );
+                                  return affiliateLink ? (
+                                    <AffiliateLink
+                                      url={affiliateLink.url}
+                                      label={affiliateLink.label}
+                                      provider={affiliateLink.provider}
+                                      variant="badge"
+                                    />
+                                  ) : null;
+                                })()}
+                                
+                                {item.category?.toLowerCase() === 'activity' && item.location && (() => {
+                                  const affiliateLink = getActivityAffiliateLink(
+                                    item.title,
+                                    item.location
+                                  );
+                                  return affiliateLink ? (
+                                    <AffiliateLink
+                                      url={affiliateLink.url}
+                                      label={affiliateLink.label}
+                                      provider={affiliateLink.provider}
+                                      variant="badge"
+                                    />
+                                  ) : null;
+                                })()}
+                              </div>
 
                               {/* Metadata */}
                               <div className="flex flex-wrap gap-4 mt-4 text-sm text-forest/60">

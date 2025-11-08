@@ -98,6 +98,24 @@ export const app = {
 };
 
 /**
+ * Affiliate Program Configuration
+ */
+export const affiliates = {
+  bookingCom: {
+    affiliateId: getEnvVar('BOOKING_COM_AFFILIATE_ID', false),
+  },
+  rei: {
+    affiliateId: getEnvVar('REI_AFFILIATE_ID', false),
+  },
+  getYourGuide: {
+    affiliateId: getEnvVar('GET_YOUR_GUIDE_AFFILIATE_ID', false),
+  },
+  viator: {
+    affiliateId: getEnvVar('VIATOR_AFFILIATE_ID', false),
+  },
+};
+
+/**
  * Validates all required environment variables are set
  * Call this at application startup to catch missing variables early
  */

@@ -4,6 +4,8 @@ This guide explains how to set up all required API keys and environment variable
 
 ## 📋 Required API Keys
 
+> **Note**: Affiliate program IDs are optional but recommended for monetization. See section 6 below.
+
 ### 1. OpenAI API Key
 **Purpose**: GPT-4/GPT-3.5 API calls for AI features
 
@@ -196,6 +198,41 @@ cp .env.example .env.local
 ### Step 2: Fill in your API keys
 
 Open `.env.local` and replace all `your_*_api_key_here` placeholders with your actual keys.
+
+### 6. Affiliate Program IDs (Optional)
+**Purpose**: Monetization through affiliate links
+
+**How to get them**:
+
+#### Booking.com Affiliate Program
+1. Go to [Booking.com Affiliate Partner Central](https://www.booking.com/affiliate-program/v2/index.html)
+2. Sign up for the affiliate program
+3. Get your affiliate ID (usually starts with a number)
+4. Add to `.env.local`: `BOOKING_COM_AFFILIATE_ID=your_affiliate_id`
+
+#### REI Affiliate Program
+1. Go to [REI Affiliate Program](https://www.rei.com/affiliate)
+2. Sign up for the affiliate program
+3. Get your affiliate tracking ID
+4. Add to `.env.local`: `REI_AFFILIATE_ID=your_affiliate_id`
+
+#### GetYourGuide Affiliate Program
+1. Go to [GetYourGuide Partner Program](https://partner.getyourguide.com/)
+2. Sign up for the partner program
+3. Get your partner ID
+4. Add to `.env.local`: `GET_YOUR_GUIDE_AFFILIATE_ID=your_partner_id`
+
+#### Viator Affiliate Program
+1. Go to [Viator Affiliate Program](https://www.viator.com/affiliates)
+2. Sign up for the affiliate program
+3. Get your affiliate ID
+4. Add to `.env.local`: `VIATOR_AFFILIATE_ID=your_affiliate_id`
+
+**Note**: Affiliate links are optional. If not configured, the app will work normally without affiliate links.
+
+**Cost**: Free to join, earn commissions on bookings/purchases
+
+---
 
 ### Step 3: Verify setup
 
