@@ -91,6 +91,9 @@ model Itinerary {
   budget      Decimal?  @db.Decimal(10, 2) // Target budget for the trip
   budgetCurrency String? @default("USD") @map("budget_currency")
   isPublic    Boolean  @default(false) @map("is_public")
+  isPreset    Boolean  @default(false) @map("is_preset") // Preset/template itineraries
+  presetImageUrl String? @map("preset_image_url") // Image URL for preset itineraries
+  featured    Boolean  @default(false) // Featured preset itineraries
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
@@ -101,6 +104,8 @@ model Itinerary {
 
   @@index([userId])
   @@index([destination])
+  @@index([isPreset])
+  @@index([featured])
   @@map("itineraries")
 }
 

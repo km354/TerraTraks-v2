@@ -15,6 +15,7 @@ import {
   getAccommodationAffiliateLink,
   getActivityAffiliateLink,
 } from '@/lib/affiliates';
+import { CopyPresetButton } from '@/components/CopyPresetButton';
 
 /**
  * Itinerary Detail Page
@@ -328,10 +329,10 @@ export default async function ItineraryPage({
                 </div>
               </div>
               <Link
-                href="/dashboard"
+                href={itinerary.isPreset ? "/featured" : "/dashboard"}
                 className="text-sky hover:text-sky-dark text-sm font-medium flex items-center whitespace-nowrap ml-4"
               >
-                ← Back to Dashboard
+                {itinerary.isPreset ? "← Back to Featured" : "← Back to Dashboard"}
               </Link>
             </div>
 
@@ -772,24 +773,42 @@ export default async function ItineraryPage({
             </div>
           )}
 
-          {/* Budget & Expenses */}
-          <ExpenseList
-            itineraryId={itinerary.id}
-            expenses={itinerary.expenses.map((exp) => ({
-              id: exp.id,
-              title: exp.title,
-              description: exp.description,
-              amount: Number(exp.amount),
-              currency: exp.currency,
-              category: exp.category,
-              date: exp.date,
-            }))}
-            budget={itinerary.budget ? Number(itinerary.budget) : null}
-            budgetCurrency={itinerary.budgetCurrency || 'USD'}
-            onRefresh={() => {
-              // Refresh handled by component
-            }}
-          />
+          {/* Budget & Expenses - Only show for user's own itineraries */}
+          {!itinerary.isPreset && (
+            <ExpenseList
+              itineraryId={itinerary.id}
+              expenses={itinerary.expenses.map((exp) => ({
+                id: exp.id,
+                title: exp.title,
+                description: exp.description,
+                amount: Number(exp.amount),
+                currency: exp.currency,
+                category: exp.category,
+                date: exp.date,
+              }))}
+              budget={itinerary.budget ? Number(itinerary.budget) : null}
+              budgetCurrency={itinerary.budgetCurrency || 'USD'}
+              onRefresh={() => {
+                // Refresh handled by component
+              }}
+            />
+          )}
+
+          {/* Copy Preset Button - Only show for preset itineraries */}
+          {itinerary.isPreset && session?.user?.id && (
+            <div className="bg-white shadow-lg rounded-2xl p-8 mb-6">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-forest mb-4">
+                  Like this itinerary?
+                </h3>
+                <p className="text-forest/70 mb-6">
+                  Copy it to your account to customize dates, add expenses, and
+                  make it your own.
+                </p>
+                <CopyPresetButton presetId={itinerary.id} />
+              </div>
+            </div>
+          )}
         </div>
       </main>
   );

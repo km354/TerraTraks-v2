@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
+import { PresetItineraryCard } from '@/components/PresetItineraryCard';
 import { BillingPortalButton } from '@/components/BillingPortalButton';
 import { app } from '@/lib/env';
 
