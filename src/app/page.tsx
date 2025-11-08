@@ -36,10 +36,6 @@ export const metadata: Metadata = {
   },
 };
 
-// Force static generation
-export const dynamic = 'force-static';
-export const revalidate = 3600; // Revalidate every hour
-
 export default function Home() {
   return (
     <main className="min-h-screen bg-offwhite">

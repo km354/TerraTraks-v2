@@ -20,7 +20,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 export const metadata: Metadata = {
-  metadataBase: new URL(app.url || 'https://terratraks.com'),
+  metadataBase: new URL(app.url || process.env.NEXT_PUBLIC_APP_URL || 'https://terratraks.com'),
   title: {
     default: "TerraTraks - Plan Your National Park Adventure with AI",
     template: "%s | TerraTraks",
@@ -38,13 +38,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: app.url,
+    url: app.url || process.env.NEXT_PUBLIC_APP_URL || 'https://terratraks.com',
     siteName: "TerraTraks",
     title: "TerraTraks - AI-Powered Trip Planning",
     description: "Plan your perfect national park adventure with AI-powered itineraries, crowd predictions, and smart packing lists.",
     images: [
       {
-        url: `${app.url}/og-image.jpg`, // You'll need to create this
+        url: `${app.url || process.env.NEXT_PUBLIC_APP_URL || 'https://terratraks.com'}/og-image.jpg`, // You'll need to create this
         width: 1200,
         height: 630,
         alt: "TerraTraks - AI-Powered Trip Planning",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     title: "TerraTraks - AI-Powered Trip Planning",
     description: "Plan your perfect national park adventure with AI-powered itineraries.",
     creator: "@terratraks",
-    images: [`${app.url}/og-image.jpg`],
+    images: [`${app.url || process.env.NEXT_PUBLIC_APP_URL || 'https://terratraks.com'}/og-image.jpg`],
   },
   robots: {
     index: true,
