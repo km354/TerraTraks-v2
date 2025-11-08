@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import { ActivityIcon } from '@/components/ActivityIcon';
 
 /**
  * Itinerary Detail Page
@@ -73,21 +74,66 @@ export default async function ItineraryPage({
       })
     : null;
 
-  // Group items by date
-  const itemsByDate = itinerary.items.reduce((acc, item) => {
-    const dateKey = item.date
-      ? new Date(item.date).toLocaleDateString('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric',
-        })
-      : 'Unscheduled';
-    if (!acc[dateKey]) {
-      acc[dateKey] = [];
+  // Calculate trip duration
+  let tripDuration = 0;
+  if (itinerary.startDate && itinerary.endDate) {
+    const start = new Date(itinerary.startDate);
+    const end = new Date(itinerary.endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    tripDuration = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 to include both start and end days
+  }
+
+  // Group items by date and calculate day numbers
+  const itemsByDate: Array<{
+    dayNumber: number;
+    date: string;
+    dateObj: Date | null;
+    items: typeof itinerary.items;
+  }> = [];
+
+  const dateMap = new Map<string, typeof itinerary.items>();
+
+  // First, group items by their actual date
+  itinerary.items.forEach((item) => {
+    if (item.date) {
+      const dateKey = new Date(item.date).toISOString().split('T')[0];
+      if (!dateMap.has(dateKey)) {
+        dateMap.set(dateKey, []);
+      }
+      dateMap.get(dateKey)!.push(item);
     }
-    acc[dateKey].push(item);
-    return acc;
-  }, {} as Record<string, typeof itinerary.items>);
+  });
+
+  // Sort dates and assign day numbers
+  const sortedDates = Array.from(dateMap.keys()).sort();
+  let dayNumber = 1;
+
+  sortedDates.forEach((dateKey) => {
+    const dateObj = new Date(dateKey);
+    const formattedDate = dateObj.toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    });
+
+    itemsByDate.push({
+      dayNumber: dayNumber++,
+      date: formattedDate,
+      dateObj,
+      items: dateMap.get(dateKey)!,
+    });
+  });
+
+  // Add unscheduled items if any
+  const unscheduledItems = itinerary.items.filter((item) => !item.date);
+  if (unscheduledItems.length > 0) {
+    itemsByDate.push({
+      dayNumber: 0,
+      date: 'Unscheduled',
+      dateObj: null,
+      items: unscheduledItems,
+    });
+  }
 
   // Calculate total expenses
   const totalExpenses = itinerary.expenses.reduce((sum, expense) => {
@@ -111,40 +157,18 @@ export default async function ItineraryPage({
 
   return (
     <main className="min-h-screen bg-offwhite py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="bg-white shadow-lg rounded-2xl p-8 mb-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h1 className="text-4xl font-bold text-forest mb-2">
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold text-forest mb-3">
                   {itinerary.title}
                 </h1>
-                <p className="text-forest/70 text-lg flex items-center mb-2">
-                  <svg
-                    className="h-5 w-5 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  {itinerary.destination}
-                </p>
-                {startDate && endDate && (
-                  <p className="text-forest/70 text-lg flex items-center">
+                <div className="flex flex-wrap gap-4 text-forest/70">
+                  <p className="flex items-center">
                     <svg
-                      className="h-5 w-5 mr-2"
+                      className="h-5 w-5 mr-2 text-sage"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -153,20 +177,114 @@ export default async function ItineraryPage({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={2}
-                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    {startDate} - {endDate}
+                    {itinerary.destination}
                   </p>
-                )}
+                  {startDate && endDate && (
+                    <p className="flex items-center">
+                      <svg
+                        className="h-5 w-5 mr-2 text-sage"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                      {startDate} - {endDate}
+                    </p>
+                  )}
+                  {tripDuration > 0 && (
+                    <p className="flex items-center">
+                      <svg
+                        className="h-5 w-5 mr-2 text-sage"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      {tripDuration} {tripDuration === 1 ? 'day' : 'days'}
+                    </p>
+                  )}
+                </div>
               </div>
               <Link
                 href="/dashboard"
-                className="text-sky hover:text-sky-dark text-sm font-medium flex items-center"
+                className="text-sky hover:text-sky-dark text-sm font-medium flex items-center whitespace-nowrap ml-4"
               >
                 ← Back to Dashboard
               </Link>
             </div>
+
+            {/* Overview Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+              <div className="bg-sage-light/30 rounded-lg p-4 border border-sage/20">
+                <div className="flex items-center mb-2">
+                  <div className="bg-sage-light rounded-full p-2 mr-3">
+                    <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm text-forest/60">Activities</p>
+                    <p className="text-xl font-bold text-forest">{itinerary.items.length}</p>
+                  </div>
+                </div>
+              </div>
+
+              {totalExpenses > 0 && (
+                <div className="bg-sky-light/30 rounded-lg p-4 border border-sky/20">
+                  <div className="flex items-center mb-2">
+                    <div className="bg-sky-light rounded-full p-2 mr-3">
+                      <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm text-forest/60">Total Budget</p>
+                      <p className="text-xl font-bold text-forest">
+                        ${totalExpenses.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="bg-sand/30 rounded-lg p-4 border border-sand/20">
+                <div className="flex items-center mb-2">
+                  <div className="bg-sand rounded-full p-2 mr-3">
+                    <svg className="h-5 w-5 text-forest" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm text-forest/60">Duration</p>
+                    <p className="text-xl font-bold text-forest">
+                      {tripDuration > 0 ? `${tripDuration} ${tripDuration === 1 ? 'day' : 'days'}` : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {itinerary.description && (
               <div className="mt-4 p-4 bg-sage-light/30 rounded-lg border border-sage/20">
                 <p className="text-forest/80 leading-relaxed whitespace-pre-wrap">
@@ -178,101 +296,170 @@ export default async function ItineraryPage({
 
           {/* Itinerary Items */}
           <div className="bg-white shadow-lg rounded-2xl p-8 mb-6">
-            <h2 className="text-3xl font-bold text-forest mb-8">
-              Itinerary
-            </h2>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold text-forest">
+                Daily Itinerary
+              </h2>
+              {itemsByDate.length > 0 && (
+                <span className="text-sm text-forest/60 bg-sage-light/30 px-4 py-2 rounded-full">
+                  {itemsByDate.filter(d => d.dayNumber > 0).length} {itemsByDate.filter(d => d.dayNumber > 0).length === 1 ? 'day' : 'days'}
+                </span>
+              )}
+            </div>
 
-            {Object.keys(itemsByDate).length === 0 ? (
+            {itemsByDate.length === 0 ? (
               <div className="text-center py-12">
+                <div className="bg-sage-light/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+                  <svg
+                    className="h-8 w-8 text-sage"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                </div>
                 <p className="text-forest/60">No itinerary items yet.</p>
               </div>
             ) : (
-              <div className="space-y-8">
-                {Object.entries(itemsByDate).map(([date, items], dayIndex) => (
-                  <div key={date} className="border-l-4 border-sage pl-6">
-                    <h3 className="text-xl font-semibold text-forest mb-4">
-                      {date === 'Unscheduled' ? 'Unscheduled Activities' : date}
-                    </h3>
-                    <div className="space-y-4">
-                      {items.map((item) => (
+              <div className="space-y-10">
+                {itemsByDate.map((dayData) => (
+                  <div key={dayData.date} className="relative">
+                    {/* Day Header */}
+                    <div className="flex items-center mb-6">
+                      <div className="bg-forest text-offwhite rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mr-4 flex-shrink-0">
+                        {dayData.dayNumber > 0 ? dayData.dayNumber : '?'}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold text-forest">
+                          {dayData.dayNumber > 0 ? `Day ${dayData.dayNumber}` : 'Unscheduled Activities'}
+                        </h3>
+                        <p className="text-forest/70 mt-1">
+                          {dayData.date}
+                          {dayData.dateObj && (
+                            <span className="ml-2 text-sm text-forest/60">
+                              ({dayData.dateObj.toLocaleDateString('en-US', { weekday: 'long' })})
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                      <div className="text-sm text-forest/60 bg-sage-light/30 px-3 py-1 rounded-full">
+                        {dayData.items.length} {dayData.items.length === 1 ? 'activity' : 'activities'}
+                      </div>
+                    </div>
+
+                    {/* Activities */}
+                    <div className="ml-16 space-y-4">
+                      {dayData.items.map((item, index) => (
                         <div
                           key={item.id}
-                          className="bg-sage-light/30 p-5 rounded-lg border border-sage/20"
+                          className="bg-sage-light/20 rounded-xl p-6 border-2 border-transparent hover:border-sage/30 transition-all group"
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-forest text-lg">
-                                {item.title}
-                              </h4>
+                          <div className="flex items-start gap-4">
+                            {/* Activity Icon */}
+                            <div className="flex-shrink-0 mt-1">
+                              <div className={`rounded-lg p-3 ${getCategoryColor(item.category)}`}>
+                                <ActivityIcon
+                                  category={item.category}
+                                  title={item.title}
+                                  className="h-6 w-6 text-forest"
+                                />
+                              </div>
+                            </div>
+
+                            {/* Activity Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-4 mb-2">
+                                <h4 className="font-semibold text-forest text-lg group-hover:text-forest-light transition-colors">
+                                  {item.title}
+                                </h4>
+                                {item.category && (
+                                  <span
+                                    className={`px-3 py-1 text-xs font-medium ${getCategoryColor(
+                                      item.category
+                                    )} text-forest rounded-full flex-shrink-0 capitalize`}
+                                  >
+                                    {item.category}
+                                  </span>
+                                )}
+                              </div>
+
                               {item.description && (
-                                <p className="text-forest/70 mt-2 whitespace-pre-wrap">
+                                <p className="text-forest/70 mt-2 leading-relaxed whitespace-pre-wrap">
                                   {item.description}
                                 </p>
                               )}
-                              {item.location && (
-                                <p className="text-forest/60 mt-2 text-sm flex items-center">
-                                  <svg
-                                    className="h-4 w-4 mr-1"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                    />
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                    />
-                                  </svg>
-                                  {item.location}
-                                </p>
-                              )}
-                              {item.startTime && (
-                                <p className="text-forest/60 mt-2 text-sm flex items-center">
-                                  <svg
-                                    className="h-4 w-4 mr-1"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                    />
-                                  </svg>
-                                  {new Date(item.startTime).toLocaleTimeString('en-US', {
-                                    hour: 'numeric',
-                                    minute: '2-digit',
-                                  })}
-                                  {item.endTime &&
-                                    ` - ${new Date(item.endTime).toLocaleTimeString('en-US', {
-                                      hour: 'numeric',
-                                      minute: '2-digit',
-                                    })}`}
-                                </p>
-                              )}
+
+                              {/* Metadata */}
+                              <div className="flex flex-wrap gap-4 mt-4 text-sm text-forest/60">
+                                {item.location && (
+                                  <div className="flex items-center">
+                                    <svg
+                                      className="h-4 w-4 mr-1.5"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                      />
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                      />
+                                    </svg>
+                                    <span className="font-medium">{item.location}</span>
+                                  </div>
+                                )}
+                                {item.startTime && (
+                                  <div className="flex items-center">
+                                    <svg
+                                      className="h-4 w-4 mr-1.5"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                      />
+                                    </svg>
+                                    <span className="font-medium">
+                                      {new Date(item.startTime).toLocaleTimeString('en-US', {
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                      })}
+                                      {item.endTime &&
+                                        ` - ${new Date(item.endTime).toLocaleTimeString('en-US', {
+                                          hour: 'numeric',
+                                          minute: '2-digit',
+                                        })}`}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            {item.category && (
-                              <span
-                                className={`px-3 py-1 text-xs font-medium ${getCategoryColor(
-                                  item.category
-                                )} text-forest rounded-full ml-4 capitalize`}
-                              >
-                                {item.category}
-                              </span>
-                            )}
                           </div>
                         </div>
                       ))}
                     </div>
+
+                    {/* Day Separator */}
+                    {itemsByDate.indexOf(dayData) < itemsByDate.length - 1 && dayData.dayNumber > 0 && (
+                      <div className="ml-16 mt-8 pt-8 border-t border-sage/20"></div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -282,42 +469,67 @@ export default async function ItineraryPage({
           {/* Expenses */}
           {itinerary.expenses.length > 0 && (
             <div className="bg-white shadow-lg rounded-2xl p-8">
-              <h2 className="text-3xl font-bold text-forest mb-8">
-                Expenses
-              </h2>
-              <div className="space-y-4">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-3xl font-bold text-forest">
+                  Expenses
+                </h2>
+                <div className="text-right">
+                  <p className="text-sm text-forest/60">Total Budget</p>
+                  <p className="text-2xl font-bold text-forest">
+                    ${totalExpenses.toFixed(2)}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3">
                 {itinerary.expenses.map((expense) => (
                   <div
                     key={expense.id}
-                    className="flex justify-between items-center p-5 bg-sage-light/20 rounded-lg border border-sage/20"
+                    className="flex justify-between items-center p-5 bg-sage-light/20 rounded-lg border border-sage/20 hover:bg-sage-light/30 transition-colors"
                   >
-                    <div>
-                      <h4 className="font-semibold text-forest">
-                        {expense.title}
-                      </h4>
-                      {expense.description && (
-                        <p className="text-sm text-forest/70 mt-1">
-                          {expense.description}
-                        </p>
-                      )}
-                      {expense.category && (
-                        <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-sage-light text-forest rounded-full">
-                          {expense.category}
-                        </span>
-                      )}
+                    <div className="flex items-center gap-4">
+                      <div className="bg-sky-light rounded-lg p-2">
+                        <svg
+                          className="h-5 w-5 text-forest"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-forest">
+                          {expense.title}
+                        </h4>
+                        {expense.description && (
+                          <p className="text-sm text-forest/70 mt-1">
+                            {expense.description}
+                          </p>
+                        )}
+                        {expense.category && (
+                          <span className="inline-block mt-2 px-2 py-1 text-xs font-medium bg-sage-light text-forest rounded-full">
+                            {expense.category}
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <span className="text-xl font-bold text-forest">
                       ${Number(expense.amount).toFixed(2)} {expense.currency}
                     </span>
                   </div>
                 ))}
-                <div className="border-t-2 border-sage/30 pt-5 mt-6">
-                  <div className="flex justify-between items-center">
-                    <span className="text-2xl font-bold text-forest">Total</span>
-                    <span className="text-3xl font-bold text-forest">
-                      ${totalExpenses.toFixed(2)} {itinerary.expenses[0]?.currency || 'USD'}
-                    </span>
-                  </div>
+              </div>
+              <div className="border-t-2 border-forest/20 pt-6 mt-6">
+                <div className="flex justify-between items-center">
+                  <span className="text-2xl font-bold text-forest">Total</span>
+                  <span className="text-3xl font-bold text-forest">
+                    ${totalExpenses.toFixed(2)} {itinerary.expenses[0]?.currency || 'USD'}
+                  </span>
                 </div>
               </div>
             </div>
