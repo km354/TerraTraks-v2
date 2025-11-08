@@ -162,11 +162,19 @@ export default async function ItineraryPage({
       title: item.title,
     }));
 
-  // Generate map URL
-  const mapUrl = await generateItineraryMap(itinerary.destination, locations, {
-    size: '800x500',
-    showRoute: locations.length > 1,
-  });
+  // Generate map URL (with error handling)
+  let mapUrl: string | null = null;
+  try {
+    if (locations.length > 0) {
+      mapUrl = await generateItineraryMap(itinerary.destination, locations, {
+        size: '800x500',
+        showRoute: locations.length > 1,
+      });
+    }
+  } catch (mapError) {
+    console.error('Error generating itinerary map:', mapError);
+    // Map generation is optional, continue without it
+  }
 
   // Generate per-day maps (with error handling)
   const dayMapPromises = itemsByDate
