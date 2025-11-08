@@ -1,21 +1,126 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import dynamic from 'next/dynamic';
 import { ActivityIcon } from '@/components/ActivityIcon';
 import { generateItineraryMap, generateLocationMap } from '@/lib/google-maps';
 import { predictCrowdLevel } from '@/lib/crowd-level';
 import { CrowdLevelBadge } from '@/components/CrowdLevelBadge';
-import { PackingList } from '@/components/PackingList';
-import { ExpenseList } from '@/components/ExpenseList';
-import { BudgetEditor } from '@/components/BudgetEditor';
 import { AffiliateLink } from '@/components/AffiliateLink';
 import {
   getAccommodationAffiliateLink,
   getActivityAffiliateLink,
 } from '@/lib/affiliates';
-import { CopyPresetButton } from '@/components/CopyPresetButton';
+import { app } from '@/lib/env';
+
+// Dynamically import heavy client components to reduce initial bundle size
+const PackingList = dynamic(() => import('@/components/PackingList').then(mod => ({ default: mod.PackingList })), {
+  loading: () => (
+    <div className="bg-white shadow-lg rounded-2xl p-8 mb-6">
+      <div className="animate-pulse">
+        <div className="h-8 bg-sage-light/30 rounded w-1/3 mb-6"></div>
+        <div className="space-y-3">
+          <div className="h-4 bg-sage-light/20 rounded w-full"></div>
+          <div className="h-4 bg-sage-light/20 rounded w-5/6"></div>
+          <div className="h-4 bg-sage-light/20 rounded w-4/6"></div>
+        </div>
+      </div>
+    </div>
+  ),
+});
+
+const ExpenseList = dynamic(() => import('@/components/ExpenseList').then(mod => ({ default: mod.ExpenseList })), {
+  loading: () => (
+    <div className="bg-white shadow-lg rounded-2xl p-8 mb-6">
+      <div className="animate-pulse">
+        <div className="h-8 bg-sage-light/30 rounded w-1/4 mb-6"></div>
+        <div className="h-32 bg-sage-light/20 rounded"></div>
+      </div>
+    </div>
+  ),
+});
+
+const BudgetEditor = dynamic(() => import('@/components/BudgetEditor').then(mod => ({ default: mod.BudgetEditor })), {
+  loading: () => <div className="h-8 w-24 bg-sage-light/30 rounded animate-pulse"></div>,
+});
+
+const CopyPresetButton = dynamic(() => import('@/components/CopyPresetButton').then(mod => ({ default: mod.CopyPresetButton })), {
+  loading: () => (
+    <button disabled className="px-6 py-3 bg-forest text-offwhite rounded-lg opacity-50">
+      Loading...
+    </button>
+  ),
+});
+
+/**
+ * Generate metadata for itinerary page
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const itinerary = await prisma.itinerary.findUnique({
+    where: { id },
+    select: {
+      title: true,
+      destination: true,
+      description: true,
+      startDate: true,
+      endDate: true,
+      isPreset: true,
+    },
+  });
+
+  if (!itinerary) {
+    return {
+      title: 'Itinerary Not Found | TerraTraks',
+    };
+  }
+
+  const title = `${itinerary.title} - ${itinerary.destination} | TerraTraks`;
+  const description = itinerary.description 
+    ? `${itinerary.description.substring(0, 155)}...`
+    : `Plan your trip to ${itinerary.destination} with this detailed itinerary. Includes activities, maps, crowd predictions, and packing lists.`;
+  
+  const startDate = itinerary.startDate 
+    ? new Date(itinerary.startDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : null;
+
+  return {
+    title,
+    description,
+    keywords: [
+      itinerary.destination,
+      'travel itinerary',
+      'trip planning',
+      itinerary.isPreset ? 'preset itinerary' : 'custom itinerary',
+      startDate || 'travel',
+    ],
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      siteName: 'TerraTraks',
+      ...(startDate && {
+        publishedTime: itinerary.startDate?.toISOString(),
+      }),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+    alternates: {
+      canonical: `${app.url}/itinerary/${id}`,
+    },
+  };
+}
 
 /**
  * Itinerary Detail Page
@@ -502,21 +607,27 @@ export default async function ItineraryPage({
                     </svg>
                   </a>
                 </div>
-                <div className="rounded-lg overflow-hidden border-2 border-sage/20 shadow-md">
-                  <img
+                <div className="rounded-lg overflow-hidden border-2 border-sage/20 shadow-md relative aspect-video bg-sage-light/20">
+                  <Image
                     src={mapUrl}
                     alt={`Map of ${itinerary.destination} showing itinerary locations`}
-                    className="w-full h-auto"
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
+                    loading="lazy"
+                    unoptimized // Google Maps Static API images are already optimized
                     onError={(e) => {
                       console.error('Error loading map image:', e);
-                      // Hide map on error
+                      // Hide map on error and show fallback
                       const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                      const parent = target.parentElement;
+                      const parent = target.closest('.relative');
                       if (parent) {
                         parent.innerHTML = `
-                          <div class="p-8 text-center text-forest/60">
-                            <p>Map could not be loaded. <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(itinerary.destination)}" target="_blank" class="text-sky hover:underline">Open in Google Maps</a></p>
+                          <div class="p-8 text-center text-forest/60 flex items-center justify-center h-full">
+                            <div>
+                              <p class="mb-2">Map could not be loaded.</p>
+                              <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(itinerary.destination)}" target="_blank" rel="noopener noreferrer" class="text-sky hover:underline">Open ${itinerary.destination} in Google Maps</a>
+                            </div>
                           </div>
                         `;
                       }
@@ -640,11 +751,30 @@ export default async function ItineraryPage({
                                 </svg>
                               </a>
                             </div>
-                            <div className="rounded-lg overflow-hidden border-2 border-sage/20 shadow-md">
-                              <img
+                            <div className="rounded-lg overflow-hidden border-2 border-sage/20 shadow-md relative aspect-video bg-sage-light/20">
+                              <Image
                                 src={dayMap.mapUrl}
-                                alt={`Map for Day ${dayData.dayNumber}`}
-                                className="w-full h-auto"
+                                alt={`Map for Day ${dayData.dayNumber} in ${itinerary.destination}`}
+                                fill
+                                className="object-contain"
+                                sizes="(max-width: 768px) 100vw, 600px"
+                                loading="lazy"
+                                unoptimized // Google Maps Static API images are already optimized
+                                onError={(e) => {
+                                  console.error(`Error loading map image for day ${dayData.dayNumber}:`, e);
+                                  const target = e.target as HTMLImageElement;
+                                  const parent = target.closest('.relative');
+                                  if (parent) {
+                                    parent.innerHTML = `
+                                      <div class="p-4 text-center text-forest/60 text-sm flex items-center justify-center h-full">
+                                        <div>
+                                          <p class="mb-2">Map for Day ${dayData.dayNumber} could not be loaded.</p>
+                                          <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(firstLocation)}" target="_blank" rel="noopener noreferrer" class="text-sky hover:underline">Open in Google Maps</a>
+                                        </div>
+                                      </div>
+                                    `;
+                                  }
+                                }}
                               />
                             </div>
                           </div>

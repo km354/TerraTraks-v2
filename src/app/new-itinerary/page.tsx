@@ -1,7 +1,39 @@
+import dynamic from 'next/dynamic';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
-import { ItineraryForm } from '@/components/ItineraryForm';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+/**
+ * New Itinerary Page Metadata
+ */
+export const metadata: Metadata = {
+  title: 'Create New Itinerary - Plan Your Trip | TerraTraks',
+  description: 'Create a personalized travel itinerary with AI. Enter your destination, dates, interests, and let our AI plan your perfect trip.',
+  robots: {
+    index: false, // Form pages typically not indexed
+    follow: true,
+  },
+};
+
+// Dynamically import the form component to reduce initial bundle size
+const ItineraryForm = dynamic(() => import('@/components/ItineraryForm').then(mod => ({ default: mod.ItineraryForm })), {
+  loading: () => (
+    <div className="min-h-screen bg-offwhite py-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white shadow-lg rounded-2xl p-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-sage-light/30 rounded w-3/4 mb-6"></div>
+            <div className="h-4 bg-sage-light/20 rounded w-full mb-4"></div>
+            <div className="h-4 bg-sage-light/20 rounded w-5/6 mb-4"></div>
+            <div className="h-32 bg-sage-light/20 rounded mb-6"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  ),
+  ssr: false, // Form is client-side only
+});
 
 /**
  * New Itinerary Page
@@ -57,4 +89,3 @@ export default async function NewItineraryPage() {
       </main>
   );
 }
-

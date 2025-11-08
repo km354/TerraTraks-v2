@@ -1,10 +1,24 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { PresetItineraryCard } from '@/components/PresetItineraryCard';
 import { BillingPortalButton } from '@/components/BillingPortalButton';
 import { app } from '@/lib/env';
+import type { Metadata } from 'next';
+
+/**
+ * Dashboard Page Metadata
+ */
+export const metadata: Metadata = {
+  title: 'Dashboard | TerraTraks',
+  description: 'Manage your travel itineraries, track expenses, and plan your next adventure with TerraTraks.',
+  robots: {
+    index: false, // Dashboard is private, don't index
+    follow: false,
+  },
+};
 
 /**
  * Dashboard Page
@@ -133,10 +147,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <div className="flex items-center justify-between flex-wrap gap-6">
               <div className="flex items-center">
                 {session.user.image ? (
-                  <img
+                  <Image
                     src={session.user.image}
                     alt={user.name || 'User'}
-                    className="h-20 w-20 rounded-full mr-6 border-2 border-sage/30"
+                    width={80}
+                    height={80}
+                    className="rounded-full mr-6 border-2 border-sage/30"
+                    priority
                   />
                 ) : (
                   <div className="h-20 w-20 bg-sage-light rounded-full flex items-center justify-center mr-6 border-2 border-sage/30">

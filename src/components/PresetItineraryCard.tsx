@@ -71,9 +71,12 @@ export function PresetItineraryCard({
         {imageUrl ? (
           <Image
             src={imageUrl}
-            alt={title}
+            alt={`${title} - ${destination}`}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            loading="lazy"
+            quality={85}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-sage-light to-sky-light">

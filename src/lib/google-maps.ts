@@ -36,6 +36,9 @@ export async function geocodeLocation(
 
     const response = await fetch(url, {
       next: { revalidate: 86400 }, // Cache for 24 hours
+      headers: {
+        'Accept': 'application/json',
+      },
     });
 
     if (!response.ok) {

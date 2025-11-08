@@ -2,7 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import UserMenu from './UserMenu';
+import dynamic from 'next/dynamic';
+
+// Dynamically import UserMenu to reduce initial bundle size
+const UserMenu = dynamic(() => import('./UserMenu'), {
+  ssr: false, // User menu requires client-side auth check
+  loading: () => (
+    <div className="h-10 w-10 bg-sage-light/30 rounded-full animate-pulse"></div>
+  ),
+});
 
 /**
  * Navigation Component

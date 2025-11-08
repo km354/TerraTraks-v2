@@ -2,6 +2,28 @@ import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { PresetItineraryCard } from '@/components/PresetItineraryCard';
+import type { Metadata } from 'next';
+
+/**
+ * Featured Itineraries Page Metadata
+ */
+export const metadata: Metadata = {
+  title: 'Featured Itineraries - Travel Inspiration | TerraTraks',
+  description: 'Browse handcrafted travel itineraries for popular destinations. Copy and customize preset itineraries for your perfect trip.',
+  keywords: ['featured itineraries', 'travel inspiration', 'preset itineraries', 'travel templates', 'trip ideas'],
+  openGraph: {
+    title: 'Featured Itineraries - TerraTraks',
+    description: 'Discover handcrafted travel plans for popular destinations. Copy any itinerary to your account and customize it.',
+    type: 'website',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+// Enable static generation with revalidation
+export const revalidate = 3600; // Revalidate every hour
 
 /**
  * Featured Itineraries Page

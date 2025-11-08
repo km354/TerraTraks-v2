@@ -22,6 +22,9 @@ async function getCoordinates(location: string): Promise<{ lat: number; lon: num
     const url = `${OPENWEATHER_BASE_URL}/weather?q=${encodeURIComponent(location)}&appid=${openWeather.apiKey}`;
     const response = await fetch(url, {
       next: { revalidate: 3600 }, // Cache for 1 hour
+      headers: {
+        'Accept': 'application/json',
+      },
     });
 
     if (!response.ok) {
@@ -65,6 +68,9 @@ export async function getWeatherForecast(
     const url = `${OPENWEATHER_BASE_URL}/forecast?lat=${coords.lat}&lon=${coords.lon}&appid=${openWeather.apiKey}&units=metric`;
     const response = await fetch(url, {
       next: { revalidate: 3600 }, // Cache for 1 hour
+      headers: {
+        'Accept': 'application/json',
+      },
     });
 
     if (!response.ok) {

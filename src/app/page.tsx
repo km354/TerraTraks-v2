@@ -1,12 +1,45 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import type { Metadata } from 'next';
 
 /**
  * Landing Page
  * 
  * Marketing homepage for TerraTraks - AI-powered trip planning
  * Optimized for performance and conversion
+ * Statically generated for maximum performance
  */
+export const metadata: Metadata = {
+  title: 'TerraTraks - Plan Your National Park Adventure with AI',
+  description: 'Create personalized travel itineraries, predict crowd levels, generate packing lists, and track expenses. AI-powered trip planning for national parks and outdoor adventures.',
+  keywords: ['travel planning', 'AI itinerary', 'national parks', 'trip planner', 'travel app', 'adventure planning', 'itinerary generator'],
+  openGraph: {
+    title: 'TerraTraks - AI-Powered National Park Trip Planning',
+    description: 'Plan your perfect national park adventure with AI-powered itineraries, crowd predictions, and smart packing lists.',
+    type: 'website',
+    siteName: 'TerraTraks',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TerraTraks - AI-Powered Trip Planning',
+    description: 'Plan your perfect national park adventure with AI-powered itineraries.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+};
+
+// Force static generation
+export const dynamic = 'force-static';
+export const revalidate = 3600; // Revalidate every hour
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-offwhite">

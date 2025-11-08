@@ -1,7 +1,43 @@
 import Link from 'next/link';
-import { CheckoutButton } from '@/components/CheckoutButton';
+import dynamic from 'next/dynamic';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
+
+// Dynamically import checkout button to reduce initial bundle
+const CheckoutButton = dynamic(() => import('@/components/CheckoutButton').then(mod => ({ default: mod.CheckoutButton })), {
+  loading: () => (
+    <button disabled className="px-10 py-4 bg-forest text-offwhite rounded-lg opacity-50">
+      Loading...
+    </button>
+  ),
+});
+
+/**
+ * Pricing Page Metadata
+ */
+export const metadata: Metadata = {
+  title: 'Pricing - Free & Premium Plans | TerraTraks',
+  description: 'Choose the perfect plan for your travel planning needs. Free plan includes 3 itineraries. Upgrade to Premium for unlimited itineraries, GPT-4 AI, and advanced features.',
+  keywords: ['pricing', 'premium', 'subscription', 'travel planning', 'trip planner'],
+  openGraph: {
+    title: 'TerraTraks Pricing - Free & Premium Plans',
+    description: 'Start free with 3 itineraries or upgrade to Premium for unlimited trips and advanced AI features.',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'TerraTraks Pricing',
+    description: 'Choose the perfect plan for your travel planning needs.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+// Enable static generation with revalidation
+export const revalidate = 3600; // Revalidate every hour
 
 /**
  * Pricing Page
