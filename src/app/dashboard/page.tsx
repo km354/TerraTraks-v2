@@ -32,6 +32,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     where: { id: userId },
     include: {
       itineraries: {
+        where: {
+          isPreset: false, // Only user's own itineraries
+        },
         orderBy: { createdAt: 'desc' },
         include: {
           _count: {
@@ -65,6 +68,25 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const subscriptionStatus = user.subscriptionStatus || 'free';
   const isPremium = subscriptionStatus === 'active';
+
+  // Fetch featured preset itineraries for inspiration
+  const featuredItineraries = await prisma.itinerary.findMany({
+    where: {
+      isPreset: true,
+      featured: true,
+    },
+    include: {
+      items: {
+        select: {
+          id: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: 3, // Show 3 featured itineraries
+  });
 
   return (
     <main className="min-h-screen bg-offwhite py-12">
@@ -288,6 +310,59 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               </div>
             </div>
           </div>
+
+          {/* Featured Itineraries Section */}
+          {featuredItineraries.length > 0 && (
+            <div className="mb-12">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-forest mb-2">
+                    🌟 Featured Itineraries
+                  </h2>
+                  <p className="text-forest/70">
+                    Get inspired by these handcrafted travel plans. Copy any
+                    itinerary to customize it for your trip.
+                  </p>
+                </div>
+                <Link
+                  href="/featured"
+                  className="text-sky hover:text-sky-dark font-medium text-sm"
+                >
+                  View All →
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredItineraries.map((itinerary) => {
+                  const duration =
+                    itinerary.startDate && itinerary.endDate
+                      ? Math.ceil(
+                          (new Date(itinerary.endDate).getTime() -
+                            new Date(itinerary.startDate).getTime()) /
+                            (1000 * 60 * 60 * 24)
+                        ) + 1
+                      : null;
+
+                  return (
+                    <PresetItineraryCard
+                      key={itinerary.id}
+                      id={itinerary.id}
+                      title={itinerary.title}
+                      destination={itinerary.destination}
+                      description={itinerary.description}
+                      imageUrl={itinerary.presetImageUrl}
+                      duration={duration || undefined}
+                      budget={
+                        itinerary.budget ? Number(itinerary.budget) : null
+                      }
+                      budgetCurrency={itinerary.budgetCurrency || 'USD'}
+                      itemsCount={itinerary.items.length}
+                      featured={itinerary.featured}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Itineraries List */}
           <div className="bg-white shadow-lg rounded-2xl p-8">

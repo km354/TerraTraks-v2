@@ -67,7 +67,8 @@ export default async function ItineraryPage({
   }
 
   // Check if user has access to this itinerary
-  if (itinerary.userId !== userId && !itinerary.isPublic) {
+  // Preset itineraries are viewable by everyone
+  if (!itinerary.isPreset && itinerary.userId !== userId && !itinerary.isPublic) {
     redirect('/dashboard');
   }
 
