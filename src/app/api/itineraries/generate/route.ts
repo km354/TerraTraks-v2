@@ -129,6 +129,10 @@ Use markdown formatting with clear headings for each day.`
     // Generate a title if not provided
     const title = body.title || `Trip to ${body.destination}`;
 
+    // Parse budget if provided
+    const budget = body.budget ? parseFloat(body.budget) : null;
+    const budgetCurrency = 'USD'; // Default to USD, can be made configurable later
+
     // Save itinerary to database
     const itinerary = await prisma.itinerary.create({
       data: {
@@ -138,6 +142,8 @@ Use markdown formatting with clear headings for each day.`
         description: body.description || itineraryContent.substring(0, 500), // Use first 500 chars as description
         startDate: startDate,
         endDate: endDate,
+        budget: budget,
+        budgetCurrency: budgetCurrency,
         isPublic: false,
         items: {
           create: parseItineraryContent(itineraryContent, startDate),
