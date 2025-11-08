@@ -6,6 +6,7 @@
 
 import { getOpenAIClient } from './openai';
 import { WeatherSummary } from './weather';
+import { getWeatherForecast } from './weather-forecast';
 
 export interface PackingItem {
   id: string;
