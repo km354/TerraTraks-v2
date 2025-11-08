@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { generatePackingList } from '@/lib/packing-list';
-import { getWeatherForecast } from '@/lib/weather';
+import { getWeatherForecast } from '@/lib/weather-forecast';
 
 export async function POST(request: NextRequest) {
   try {
