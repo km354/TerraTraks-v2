@@ -10,8 +10,14 @@ import { app } from '@/lib/env';
  * 
  * For logged-in users to see their itineraries and profile
  */
-export default async function DashboardPage() {
+interface DashboardPageProps {
+  searchParams: Promise<{ success?: string }>;
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const session = await auth();
+  const params = await searchParams;
+  const showSuccess = params.success === 'true';
 
   // Redirect to sign in if not authenticated
   if (!session?.user?.id) {
@@ -62,6 +68,33 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen bg-offwhite py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Success Message */}
+          {showSuccess && (
+            <div className="mb-8 max-w-2xl mx-auto bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg shadow-sm">
+              <div className="flex items-center">
+                <svg
+                  className="h-6 w-6 mr-3 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div>
+                  <p className="font-semibold">🎉 Welcome to Premium!</p>
+                  <p className="mt-1 text-sm">
+                    Your subscription is now active. Enjoy unlimited itineraries and all premium features!
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Header */}
           <div className="mb-10">
             <h1 className="text-4xl font-bold text-forest mb-3">
