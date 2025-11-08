@@ -342,9 +342,32 @@ export default async function ItineraryPage({
             {/* Overview Map */}
             {mapUrl && (
               <div className="mt-6">
-                <h3 className="text-lg font-semibold text-forest mb-3">
-                  Trip Overview Map
-                </h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-semibold text-forest">
+                    Trip Overview Map
+                  </h3>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(itinerary.destination)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-sky hover:text-sky-dark flex items-center"
+                  >
+                    Open in Google Maps
+                    <svg
+                      className="h-4 w-4 ml-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </a>
+                </div>
                 <div className="rounded-lg overflow-hidden border-2 border-sage/20 shadow-md">
                   <img
                     src={mapUrl}
@@ -353,7 +376,7 @@ export default async function ItineraryPage({
                   />
                 </div>
                 <p className="text-sm text-forest/60 mt-2">
-                  Map showing key locations from your itinerary
+                  Map showing key locations from your itinerary. Click "Open in Google Maps" for an interactive view.
                 </p>
               </div>
             )}
@@ -424,8 +447,37 @@ export default async function ItineraryPage({
                       const dayLocations = dayData.items.filter((item) => item.location);
                       
                       if (dayMap?.mapUrl && dayLocations.length > 0) {
+                        // Get first location for Google Maps link
+                        const firstLocation = dayLocations[0]?.location || itinerary.destination;
+                        
                         return (
                           <div className="mb-6 ml-16">
+                            <div className="flex items-center justify-between mb-2">
+                              <h4 className="text-sm font-semibold text-forest/80">
+                                Day {dayData.dayNumber} Locations
+                              </h4>
+                              <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(firstLocation)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-sky hover:text-sky-dark flex items-center"
+                              >
+                                Open in Maps
+                                <svg
+                                  className="h-3 w-3 ml-1"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                  />
+                                </svg>
+                              </a>
+                            </div>
                             <div className="rounded-lg overflow-hidden border-2 border-sage/20 shadow-md">
                               <img
                                 src={dayMap.mapUrl}
@@ -433,9 +485,6 @@ export default async function ItineraryPage({
                                 className="w-full h-auto"
                               />
                             </div>
-                            <p className="text-xs text-forest/60 mt-1">
-                              Locations for Day {dayData.dayNumber}
-                            </p>
                           </div>
                         );
                       }
@@ -488,9 +537,9 @@ export default async function ItineraryPage({
                                 {/* Metadata */}
                                 <div className="flex flex-wrap gap-4 mt-4 text-sm text-forest/60">
                                   {item.location && (
-                                    <div className="flex items-center">
+                                    <div className="flex items-center gap-2">
                                       <svg
-                                        className="h-4 w-4 mr-1.5"
+                                        className="h-4 w-4"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -509,6 +558,27 @@ export default async function ItineraryPage({
                                         />
                                       </svg>
                                       <span className="font-medium">{item.location}</span>
+                                      <a
+                                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.location)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-sky hover:text-sky-dark text-xs flex items-center"
+                                        title="Open in Google Maps"
+                                      >
+                                        <svg
+                                          className="h-3 w-3"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                          />
+                                        </svg>
+                                      </a>
                                     </div>
                                   )}
                                   {item.startTime && (
