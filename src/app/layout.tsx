@@ -19,8 +19,24 @@ if (process.env.NODE_ENV === "development") {
   validateEnv();
 }
 
+// Get app URL safely
+function getAppUrl(): string {
+  if (app.url && app.url !== 'http://localhost:3000') {
+    return app.url.replace(/\/$/, '');
+  }
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL.replace(/\/$/, '');
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/$/, '');
+  }
+  return 'https://terratraks.com';
+}
+
+const appUrl = getAppUrl();
+
 export const metadata: Metadata = {
-  metadataBase: new URL(app.url || process.env.NEXT_PUBLIC_APP_URL || 'https://terratraks.com'),
+  metadataBase: new URL(appUrl),
   title: {
     default: "TerraTraks - Plan Your National Park Adventure with AI",
     template: "%s | TerraTraks",
@@ -38,13 +54,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: app.url || process.env.NEXT_PUBLIC_APP_URL || 'https://terratraks.com',
+    url: appUrl,
     siteName: "TerraTraks",
     title: "TerraTraks - AI-Powered Trip Planning",
     description: "Plan your perfect national park adventure with AI-powered itineraries, crowd predictions, and smart packing lists.",
     images: [
       {
-        url: `${app.url || process.env.NEXT_PUBLIC_APP_URL || 'https://terratraks.com'}/og-image.jpg`, // You'll need to create this
+        url: `${appUrl}/og-image.jpg`, // You'll need to create this
         width: 1200,
         height: 630,
         alt: "TerraTraks - AI-Powered Trip Planning",
@@ -56,7 +72,7 @@ export const metadata: Metadata = {
     title: "TerraTraks - AI-Powered Trip Planning",
     description: "Plan your perfect national park adventure with AI-powered itineraries.",
     creator: "@terratraks",
-    images: [`${app.url || process.env.NEXT_PUBLIC_APP_URL || 'https://terratraks.com'}/og-image.jpg`],
+    images: [`${appUrl}/og-image.jpg`],
   },
   robots: {
     index: true,

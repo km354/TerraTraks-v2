@@ -3,7 +3,14 @@
 import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
-import { trackPageView } from '@/lib/analytics';
+
+// Declare gtag for TypeScript
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: any[]) => void;
+  }
+}
 
 /**
  * Google Analytics Component
@@ -18,9 +25,11 @@ export function GoogleAnalytics() {
 
   // Track page views on route change
   useEffect(() => {
-    if (gaId && pathname) {
+    if (gaId && typeof window !== 'undefined' && window.gtag) {
       const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
-      trackPageView(url);
+      window.gtag('config', gaId, {
+        page_path: url,
+      });
     }
   }, [pathname, searchParams, gaId]);
 
