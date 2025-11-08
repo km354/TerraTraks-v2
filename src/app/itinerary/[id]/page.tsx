@@ -7,6 +7,7 @@ import { ActivityIcon } from '@/components/ActivityIcon';
 import { generateItineraryMap, generateLocationMap } from '@/lib/google-maps';
 import { predictCrowdLevel } from '@/lib/crowd-level';
 import { CrowdLevelBadge } from '@/components/CrowdLevelBadge';
+import { PackingList } from '@/components/PackingList';
 
 /**
  * Itinerary Detail Page
@@ -706,6 +707,25 @@ export default async function ItineraryPage({
               </div>
             )}
           </div>
+
+          {/* Packing List */}
+          {itinerary.startDate && itinerary.endDate && (
+            <div className="mb-6">
+              <PackingList
+                itineraryId={itinerary.id}
+                destination={itinerary.destination}
+                startDate={new Date(itinerary.startDate)}
+                endDate={new Date(itinerary.endDate)}
+                duration={tripDuration}
+                activities={itinerary.items
+                  .map((item) => item.title)
+                  .filter((title, index, self) => self.indexOf(title) === index)
+                  .slice(0, 10)} // Limit to 10 unique activities
+                interests={[]} // Could be extracted from itinerary description or form data
+                isPremium={itinerary.user.subscriptionStatus === 'active'}
+              />
+            </div>
+          )}
 
           {/* Expenses */}
           {itinerary.expenses.length > 0 && (

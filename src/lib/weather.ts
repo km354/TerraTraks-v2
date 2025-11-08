@@ -18,6 +18,27 @@ export interface WeatherData {
   icon: string;
 }
 
+export interface ForecastData {
+  date: Date;
+  tempHigh: number;
+  tempLow: number;
+  description: string;
+  humidity: number;
+  windSpeed: number;
+  icon: string;
+  precipitation?: number;
+}
+
+export interface WeatherSummary {
+  location: string;
+  startDate: Date;
+  endDate: Date;
+  forecasts: ForecastData[];
+  averageHigh: number;
+  averageLow: number;
+  conditions: string[];
+}
+
 /**
  * Fetch current weather data for a location
  */
