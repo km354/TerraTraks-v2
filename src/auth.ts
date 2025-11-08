@@ -8,7 +8,7 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./lib/prisma";
-import { googleOAuth, auth } from "./lib/env";
+import { googleOAuth, auth as envAuth } from "./lib/env";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma) as any,
@@ -18,7 +18,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientSecret: googleOAuth.clientSecret || process.env.GOOGLE_CLIENT_SECRET || "",
     }),
   ],
-  secret: auth.secret || process.env.AUTH_SECRET,
+  secret: envAuth.secret || process.env.AUTH_SECRET,
   session: {
     strategy: "database",
   },
