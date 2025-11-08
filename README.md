@@ -62,6 +62,27 @@ The project uses Prisma with PostgreSQL (via Supabase) for data persistence.
    - ItineraryItem (activities, accommodations, etc.)
    - Expense (travel expenses)
 
+### Authentication Setup
+
+The project uses NextAuth.js v5 with Google OAuth for user authentication.
+
+1. **Configure Google OAuth** (see [AUTHENTICATION.md](./AUTHENTICATION.md)):
+   - Get Google OAuth credentials from Google Cloud Console
+   - Add redirect URIs for development and production
+   - Add credentials to `.env.local`
+
+2. **Update database schema**:
+   ```bash
+   npm run db:push
+   ```
+
+3. **Test authentication**:
+   - Navigate to `/auth/signin`
+   - Sign in with Google
+   - Verify you're redirected to dashboard
+
+For detailed authentication setup, see [AUTHENTICATION.md](./AUTHENTICATION.md).
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
